@@ -12,6 +12,7 @@ import {
   ClipboardCheck,
   LayoutDashboard,
   Menu,
+  MonitorCheck,
   Receipt,
   RotateCcw,
   Search,
@@ -23,8 +24,9 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/cashier/dashboard" },
-  { label: "Sales", icon: BadgePercent, path: "/cashier/dashboard/sales" },
+  { label: "Dashboard",           icon: LayoutDashboard, path: "/cashier/dashboard" },
+  { label: "POS",                 icon: MonitorCheck,    path: "/cashier/dashboard/pos" },
+  { label: "Sales",               icon: BadgePercent,    path: "/cashier/dashboard/sales" },
   { label: "Returns", icon: RotateCcw, path: "/cashier/dashboard/returns" },
   { label: "Customer", icon: Users, path: "/cashier/dashboard/customer" },
   { label: "Delivery", icon: Truck, path: "/cashier/dashboard/delivery" },
@@ -111,7 +113,7 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
         }`}
       >
         {/* Header */}
-        <header className="fixed right-0 top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-3 sm:px-6 lg:left-[280px]">
+        <header className={`fixed right-0 top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-3 sm:px-6 ${isSidebarOpen ? "lg:left-[280px]" : "lg:left-0"}`}>
           <div className="flex items-center gap-3">
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
               <Image src="/Images/Avatar.png" alt="Cashier avatar" fill className="object-cover" />
