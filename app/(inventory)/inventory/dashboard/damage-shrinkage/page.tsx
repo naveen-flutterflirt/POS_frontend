@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SquarePen, Trash2, Download, X } from "lucide-react";
 
 type Shrinkage = {
@@ -55,7 +55,7 @@ export default function DamageShrinkagePage() {
   const [editForm, setEditForm]       = useState<Shrinkage>({} as Shrinkage);
 
   // Load shrinkage/damage logs on mount
-  useState(() => {
+  useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
     fetch(`${apiUrl}/inventory/stores/STORE_DEFAULT/ledger`)
       .then((res) => res.json())
@@ -82,7 +82,7 @@ export default function DamageShrinkagePage() {
         }
       })
       .catch(console.error);
-  });
+  }, []);
 
   /* ── Edit ── */
   const openEdit = (row: Shrinkage) => { setEditForm(row); setSelected(row); setIsEditOpen(true); };

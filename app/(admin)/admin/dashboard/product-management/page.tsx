@@ -4,7 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 export default function ProductManagementPage() {
@@ -18,7 +18,7 @@ export default function ProductManagementPage() {
   const [products, setProducts] = useState<any[]>([]);
 
   // Load products list on mount
-  useState(() => {
+  useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
     fetch(`${apiUrl}/catalog/products`)
       .then((res) => res.json())
@@ -40,7 +40,7 @@ export default function ProductManagementPage() {
         }
       })
       .catch(console.error);
-  });
+  }, []);
 
   const [editFormData, setEditFormData] = useState({
     name: "",

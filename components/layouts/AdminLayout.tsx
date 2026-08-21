@@ -96,14 +96,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const toggleGroup = (name: string) =>
     setOpenGroups((prev) => ({ ...prev, [name]: !prev[name] }));
 
-  if (!mounted) {
-    return (
-      <div className="h-screen w-screen bg-gray-50 flex items-center justify-center font-nunito text-gray-500">
-        Loading...
-      </div>
-    );
-  }
-
   return (
     <div className="h-dvh overflow-hidden bg-gray-50 font-nunito">
 
@@ -270,7 +262,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Bell className="h-5 w-5" />
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
             </button>
-
+ 
+            <button
+              type="button"
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className="p-2 text-gray-500 hover:text-[#622581] hover:bg-[#622581]/10 rounded-lg transition-all duration-200 cursor-pointer"
+            >
+              <UserCog className="w-5 h-5" />
+            </button>
+ 
             {isProfileOpen && (
               <div className="absolute right-4 top-14 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                 <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581] transition-colors duration-200 cursor-pointer">
