@@ -77,69 +77,57 @@ export default function PurchaseHistoryPage() {
   };
 
   return (
-    <div className="h-full max-h-full space-y-6 overflow-hidden font-nunito">
+    <div className="space-y-4 font-nunito">
       <div>
-        <h1 className="text-2xl font-poppins font-medium text-gray-800">Customer Management</h1>
-        <div className="mt-1 flex items-center gap-2 text-sm font-nunito text-gray-500">
-          <span>Admin</span>
-          <span className="text-lg text-gray-400">›</span>
-          <span>Customer Management</span>
-          <span className="text-lg text-gray-400">›</span>
-          <span className="text-gray-800">Purchase History</span>
+        <h1 className="font-poppins text-xl font-medium text-gray-800 sm:text-2xl">Customer Management</h1>
+        <div className="mt-1 flex items-center gap-2 font-nunito text-sm text-gray-500">
+          <span>Admin</span><span className="text-lg text-gray-400">›</span><span>Customer Management</span><span className="text-lg text-gray-400">›</span><span className="text-gray-800">Purchase History</span>
         </div>
       </div>
 
-      <section className="h-[calc(100vh-190px)] min-h-0 overflow-hidden border border-gray-100 bg-white">
-        <div className="px-7 py-7">
-          <h2 className="text-base font-poppins font-medium text-gray-800">Purchase History</h2>
+      <div className="bg-white">
+        <div className="px-5 py-4 sm:px-7">
+          <h2 className="font-poppins text-base font-medium text-gray-800">Purchase History</h2>
         </div>
-
-        <div className="overflow-hidden text-xs font-normal text-gray-800">
-          <div className="grid h-12 grid-cols-[10%_10%_10%_10%_6%_7%_6%_6%_10%_12%_8%_5%] items-center bg-[#f3f3f3] text-left">
-            <div className="px-2 whitespace-nowrap">Invoice No.</div>
-            <div className="px-2 whitespace-nowrap">Customer</div>
-            <div className="px-2 whitespace-nowrap">Ph No</div>
-            <div className="px-2 whitespace-nowrap">Product</div>
-            <div className="px-2 whitespace-nowrap">Quantity</div>
-            <div className="px-2 whitespace-nowrap">Discount</div>
-            <div className="px-2 whitespace-nowrap">CGST</div>
-            <div className="px-2 whitespace-nowrap">SGST</div>
-            <div className="px-2 whitespace-nowrap">Payment Type</div>
-            <div className="px-2 whitespace-nowrap">Payment Received</div>
-            <div className="px-2 leading-4">Loyalty<br />Points</div>
-            <div className="px-2 whitespace-nowrap text-center">Actions</div>
-          </div>
-
-          {purchases.map((purchase) => (
-            <div key={purchase.id} className="grid h-[57px] grid-cols-[10%_10%_10%_10%_6%_7%_6%_6%_10%_12%_8%_5%] items-center border-b border-[#e2e6eb]">
-              <div className="px-2 whitespace-nowrap">{purchase.invoice}</div>
-              <div className="px-2 whitespace-nowrap">{purchase.customer}</div>
-              <div className="px-2 whitespace-nowrap">{purchase.phone}</div>
-              <div className="px-2 whitespace-nowrap">{purchase.product}</div>
-              <div className="px-2 whitespace-nowrap">{purchase.quantity}</div>
-              <div className="px-2 whitespace-nowrap">{purchase.discount}</div>
-              <div className="px-2 whitespace-nowrap">{purchase.cgst}</div>
-              <div className="px-2 whitespace-nowrap">{purchase.sgst}</div>
-              <div className="px-2 whitespace-nowrap">{purchase.paymentType}</div>
-              <div className="px-2 whitespace-nowrap">{purchase.received}</div>
-              <div className="flex items-center gap-2 px-2 whitespace-nowrap">
-                {purchase.loyaltyPoints}
-                <Star className="h-4 w-4 fill-[#ffad00] text-[#ffad00]" />
-              </div>
-              <div className="px-2">
-                <div className="flex items-center justify-center gap-2">
-                  <button type="button" onClick={() => handleEditClick(purchase)} className="rounded p-1 text-[#1463ff] hover:bg-blue-50" aria-label={`Edit purchase for ${purchase.customer}`}>
-                    <Edit className="h-[18px] w-[18px]" />
-                  </button>
-                  <button type="button" onClick={() => { setSelectedPurchase(purchase); setIsDeleteModalOpen(true); }} className="rounded p-1 text-[#ff0000] hover:bg-red-50" aria-label={`Delete purchase for ${purchase.customer}`}>
-                    <Trash2 className="h-[18px] w-[18px]" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="scrollbar-none overflow-x-auto">
+          <table className="w-full min-w-[900px] border-collapse font-nunito text-sm">
+            <thead>
+              <tr className="border-y border-gray-200 bg-gray-50">
+                {["Invoice No.", "Customer", "Ph No", "Product", "Quantity", "Discount", "CGST", "SGST", "Payment Type", "Payment Received", "Loyalty Points", "Actions"].map((col) => (
+                  <th key={col} className="whitespace-nowrap px-3 py-3 text-left font-nunito text-sm font-normal text-gray-600 first:pl-7 last:pr-7">{col}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {purchases.map((purchase) => (
+                <tr key={purchase.id} className="transition-colors hover:bg-gray-50">
+                  <td className="whitespace-nowrap px-3 py-3 pl-7 font-nunito text-gray-700">{purchase.invoice}</td>
+                  <td className="whitespace-nowrap px-3 py-3 font-nunito text-gray-700">{purchase.customer}</td>
+                  <td className="whitespace-nowrap px-3 py-3 font-nunito text-gray-700">{purchase.phone}</td>
+                  <td className="whitespace-nowrap px-3 py-3 font-nunito text-gray-700">{purchase.product}</td>
+                  <td className="whitespace-nowrap px-3 py-3 font-nunito text-gray-700">{purchase.quantity}</td>
+                  <td className="whitespace-nowrap px-3 py-3 font-nunito text-gray-700">{purchase.discount}</td>
+                  <td className="whitespace-nowrap px-3 py-3 font-nunito text-gray-700">{purchase.cgst}</td>
+                  <td className="whitespace-nowrap px-3 py-3 font-nunito text-gray-700">{purchase.sgst}</td>
+                  <td className="whitespace-nowrap px-3 py-3 font-nunito text-gray-700">{purchase.paymentType}</td>
+                  <td className="whitespace-nowrap px-3 py-3 font-nunito text-gray-700">{purchase.received}</td>
+                  <td className="whitespace-nowrap px-3 py-3">
+                    <span className="flex items-center gap-1.5 font-nunito text-gray-700">
+                      {purchase.loyaltyPoints}<Star className="h-4 w-4 fill-[#ffad00] text-[#ffad00]" />
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3 pr-7">
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => handleEditClick(purchase)} className="rounded p-1 text-[#1463ff] hover:bg-blue-50" aria-label={`Edit purchase for ${purchase.customer}`}><Edit className="h-[18px] w-[18px]" /></button>
+                      <button type="button" onClick={() => { setSelectedPurchase(purchase); setIsDeleteModalOpen(true); }} className="rounded p-1 text-[#ff0000] hover:bg-red-50" aria-label={`Delete purchase for ${purchase.customer}`}><Trash2 className="h-[18px] w-[18px]" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </section>
+      </div>
 
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

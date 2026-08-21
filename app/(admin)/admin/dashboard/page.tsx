@@ -1,7 +1,7 @@
 export default function AdminDashboardPage() {
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-poppins font-bold text-gray-900">Dashboard</h1>
+    <div className="p-4 sm:p-6">
+      <h1 className="font-poppins text-xl font-bold text-gray-900 sm:text-2xl">Dashboard</h1>
       <p className="text-gray-600 mt-2 font-nunito">Welcome to your POS dashboard</p>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">

@@ -75,9 +75,9 @@ export default function PaymentDetailsPage() {
 	};
 
 	return (
-		<div className="h-full max-h-full space-y-6 overflow-hidden font-nunito">
+		<div className="space-y-4 font-nunito">
 			{/* Page Header */}
-			<div className="flex items-start justify-between gap-6">
+			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div>
 					<h1 className="text-2xl font-poppins font-medium text-[#1f2d42]">
 						Manage Payments of Customers &amp; Vendors
@@ -90,12 +90,12 @@ export default function PaymentDetailsPage() {
 				</div>
 
 				<div className="flex items-center gap-4 mt-1">
-					<span className="text-sm font-nunito text-gray-500 whitespace-nowrap">
+					<span className="text-sm font-nunito text-gray-500">
 						Customer/Vendor Payment Details
 					</span>
 					<button
 						type="button"
-						className="flex items-center justify-between gap-5 min-w-[146px] px-3 py-2.5 bg-[#622581] hover:bg-[#52206d] text-white rounded-lg text-xs font-nunito font-semibold transition-colors"
+						className="flex items-center justify-between gap-5 px-3 py-2.5 bg-[#622581] hover:bg-[#52206d] text-white rounded-lg text-xs font-nunito font-semibold transition-colors"
 						aria-label="Select payment detail type"
 					>
 						Select
@@ -105,69 +105,69 @@ export default function PaymentDetailsPage() {
 			</div>
 
 			{/* Payment Table */}
-			<section className="h-[calc(100vh-190px)] min-h-0 overflow-hidden border border-gray-100 bg-white">
+			<div className="bg-white">
 				<div className="px-7 py-6">
 					<h2 className="text-base font-poppins font-medium text-[#1f2d42]">
 						Customer Payment Details
 					</h2>
 				</div>
 
-				<div className="overflow-hidden text-xs font-normal text-[#253247]">
-					{/* Header Row - Percentage Based Grid */}
-					<div className="grid h-11 grid-cols-[10.5%_10%_10%_13%_7%_7%_6%_6%_11%_12%_7.5%] items-center bg-[#f3f3f3] text-left">
-						<div className="px-2 whitespace-nowrap">Invoice No.</div>
-						<div className="px-2 whitespace-nowrap">Customer</div>
-						<div className="px-2 whitespace-nowrap">Ph No</div>
-						<div className="px-2 whitespace-nowrap">Product</div>
-						<div className="px-2 whitespace-nowrap">Quantity</div>
-						<div className="px-2 whitespace-nowrap">Discount</div>
-						<div className="px-2 whitespace-nowrap">CGST</div>
-						<div className="px-2 whitespace-nowrap">SGST</div>
-						<div className="px-2 whitespace-nowrap">Payment Type</div>
-						<div className="px-2 whitespace-nowrap">Payment Received</div>
-						<div className="px-2 whitespace-nowrap text-center">Actions</div>
-					</div>
-
-					{/* Data Rows - Same Percentage Grid */}
-					{payments.map((payment) => (
-						<div
-							key={payment.id}
-							className="grid h-[50px] grid-cols-[10.5%_10%_10%_13%_7%_7%_6%_6%_11%_12%_7.5%] items-center border-b border-[#e2e6eb]"
-						>
-							<div className="px-2 whitespace-nowrap">{payment.invoice}</div>
-							<div className="px-2 whitespace-nowrap">{payment.customer}</div>
-							<div className="px-2 whitespace-nowrap">{payment.phone}</div>
-							<div className="px-2 whitespace-nowrap">{payment.product}</div>
-							<div className="px-2 whitespace-nowrap">{payment.quantity}</div>
-							<div className="px-2 whitespace-nowrap">{payment.discount}</div>
-							<div className="px-2 whitespace-nowrap">{payment.cgst}</div>
-							<div className="px-2 whitespace-nowrap">{payment.sgst}</div>
-							<div className="px-2 whitespace-nowrap">{payment.paymentType}</div>
-							<div className="px-2 whitespace-nowrap">{payment.received}</div>
-							<div className="px-2">
-								<div className="flex items-center justify-center gap-2">
-									<button
-										type="button"
-										onClick={() => handleEditClick(payment)}
-										className="rounded p-1 text-[#1463ff] hover:bg-blue-50 transition-colors"
-										aria-label={`Edit payment ${payment.invoice}`}
-									>
-										<Edit className="h-[18px] w-[18px]" />
-									</button>
-									<button
-										type="button"
-										onClick={() => handleDeleteClick(payment)}
-										className="rounded p-1 text-[#ff0000] hover:bg-red-50 transition-colors"
-										aria-label={`Delete payment ${payment.invoice}`}
-									>
-										<Trash2 className="h-[18px] w-[18px]" />
-									</button>
-								</div>
-							</div>
-						</div>
-					))}
+				<div className="scrollbar-none overflow-x-auto">
+					<table className="w-full min-w-[1000px] border-collapse font-nunito text-sm">
+						<thead>
+							<tr className="bg-[#f3f3f3] text-xs font-normal text-[#253247]">
+								<th className="whitespace-nowrap px-4 py-3 text-left font-normal">Invoice No.</th>
+								<th className="whitespace-nowrap px-4 py-3 text-left font-normal">Customer</th>
+								<th className="whitespace-nowrap px-4 py-3 text-left font-normal">Ph No</th>
+								<th className="whitespace-nowrap px-4 py-3 text-left font-normal">Store</th>
+								<th className="whitespace-nowrap px-4 py-3 text-left font-normal">Amount</th>
+								<th className="whitespace-nowrap px-4 py-3 text-left font-normal">Method</th>
+								<th className="whitespace-nowrap px-4 py-3 text-left font-normal">Status</th>
+								<th className="whitespace-nowrap px-4 py-3 text-left font-normal">Date</th>
+								<th className="whitespace-nowrap px-4 py-3 text-left font-normal">Reference</th>
+								<th className="whitespace-nowrap px-4 py-3 text-left font-normal">Notes</th>
+								<th className="whitespace-nowrap px-4 py-3 text-center font-normal">Actions</th>
+							</tr>
+						</thead>
+						<tbody className="divide-y divide-gray-100">
+							{payments.map((payment) => (
+								<tr key={payment.id}>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{payment.invoice}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{payment.customer}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{payment.phone}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{payment.product}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{payment.received}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{payment.paymentType}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{payment.discount}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{payment.quantity}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{payment.cgst}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{payment.sgst}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">
+										<div className="flex items-center justify-center gap-2">
+											<button
+												type="button"
+												onClick={() => handleEditClick(payment)}
+												className="rounded p-1 text-[#1463ff] hover:bg-blue-50 transition-colors"
+												aria-label={`Edit payment ${payment.invoice}`}
+											>
+												<Edit className="h-[18px] w-[18px]" />
+											</button>
+											<button
+												type="button"
+												onClick={() => handleDeleteClick(payment)}
+												className="rounded p-1 text-[#ff0000] hover:bg-red-50 transition-colors"
+												aria-label={`Delete payment ${payment.invoice}`}
+											>
+												<Trash2 className="h-[18px] w-[18px]" />
+											</button>
+										</div>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
 				</div>
-			</section>
+			</div>
 
 			{/* Edit Modal */}
 			{isEditModalOpen && (

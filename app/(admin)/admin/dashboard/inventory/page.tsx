@@ -60,81 +60,52 @@ export default function InventoryPage() {
 	};
 
 	return (
-		<div className="h-full max-h-full space-y-6 overflow-hidden font-nunito">
-			<div className="flex items-start justify-between gap-6">
+		<div className="space-y-4 font-nunito">
+			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div>
-					<h1 className="text-2xl font-poppins font-medium text-gray-800">
-						Inventory
-					</h1>
-					<div className="mt-1 flex items-center gap-2 text-sm font-nunito text-gray-500">
-						<span>Admin</span>
-						<span className="text-lg text-gray-400">›</span>
-						<span className="text-gray-800">Inventory Management</span>
+					<h1 className="font-poppins text-xl font-medium text-gray-800 sm:text-2xl">Inventory</h1>
+					<div className="mt-1 flex items-center gap-2 font-nunito text-sm text-gray-500">
+						<span>Admin</span><span className="text-lg text-gray-400">›</span><span className="text-gray-800">Inventory Management</span>
 					</div>
 				</div>
-
-				<Link
-					href="/admin/dashboard/inventory/create"
-					className="mt-1 flex min-w-[157px] items-center justify-center rounded-lg bg-[#622581] px-4 py-3 text-sm font-nunito font-semibold text-white transition-colors hover:bg-[#52206d]"
-				>
+				<Link href="/admin/dashboard/inventory/create" className="flex items-center justify-center rounded-lg bg-[#622581] px-4 py-2.5 font-nunito text-sm font-semibold text-white transition-colors hover:bg-[#52206d]">
 					Create Inventory Login
 				</Link>
 			</div>
 
-			<section className="h-[calc(100vh-190px)] min-h-0 overflow-hidden border border-gray-100 bg-white">
-				<div className="px-7 py-7">
-					<h2 className="text-base font-poppins font-medium text-gray-800">
-						Inventory Login Details
-					</h2>
+			<div className="bg-white">
+				<div className="px-5 py-4 sm:px-7">
+					<h2 className="font-poppins text-base font-medium text-gray-800">Inventory Login Details</h2>
 				</div>
-
-				<div className="overflow-hidden text-xs font-normal text-gray-800">
-					<div className="grid h-11 grid-cols-[17%_17%_17%_17%_17%_15%] items-center bg-[#f3f3f3] text-left">
-						<div className="px-3 whitespace-nowrap">Name</div>
-						<div className="px-3 whitespace-nowrap">Email</div>
-						<div className="px-3 whitespace-nowrap">Password</div>
-						<div className="px-3 whitespace-nowrap">Mobile Number</div>
-						<div className="px-3 whitespace-nowrap">Store</div>
-						<div className="px-3 whitespace-nowrap text-center">Actions</div>
-					</div>
-
-					{inventoryLogins.map((inventory) => (
-						<div
-							key={inventory.id}
-							className="grid h-[50px] grid-cols-[17%_17%_17%_17%_17%_15%] items-center border-b border-[#e2e6eb]"
-						>
-							<div className="px-3 whitespace-nowrap">{inventory.name}</div>
-							<div className="px-3 whitespace-nowrap">{inventory.email}</div>
-							<div className="px-3 whitespace-nowrap">{inventory.password}</div>
-							<div className="px-3 whitespace-nowrap">{inventory.mobile}</div>
-							<div className="px-3 whitespace-nowrap">{inventory.store}</div>
-							<div className="px-3">
-								<div className="flex items-center justify-center gap-3">
-									<button
-										type="button"
-										onClick={() => handleEditClick(inventory)}
-										className="rounded p-1 text-[#1463ff] transition-colors hover:bg-blue-50"
-										aria-label={`Edit inventory login ${inventory.name}`}
-									>
-										<Edit className="h-[18px] w-[18px]" />
-									</button>
-									<button
-										type="button"
-										onClick={() => {
-											setSelectedInventory(inventory);
-											setIsDeleteModalOpen(true);
-										}}
-										className="rounded p-1 text-[#ff0000] transition-colors hover:bg-red-50"
-										aria-label={`Delete inventory login ${inventory.name}`}
-									>
-										<Trash2 className="h-[18px] w-[18px]" />
-									</button>
-								</div>
-							</div>
-						</div>
-					))}
+				<div className="scrollbar-none overflow-x-auto">
+					<table className="w-full min-w-[600px] border-collapse font-nunito text-sm">
+						<thead>
+							<tr className="border-y border-gray-200 bg-gray-50">
+								{["Name", "Email", "Password", "Mobile Number", "Store", "Actions"].map((col) => (
+									<th key={col} className="whitespace-nowrap px-4 py-3 text-left font-nunito text-sm font-normal text-gray-600 first:pl-7 last:pr-7">{col}</th>
+								))}
+							</tr>
+						</thead>
+						<tbody className="divide-y divide-gray-100">
+							{inventoryLogins.map((inventory) => (
+								<tr key={inventory.id} className="transition-colors hover:bg-gray-50">
+									<td className="whitespace-nowrap px-4 py-3 pl-7 font-nunito text-gray-700">{inventory.name}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{inventory.email}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{inventory.password}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{inventory.mobile}</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{inventory.store}</td>
+									<td className="whitespace-nowrap px-4 py-3 pr-7">
+										<div className="flex items-center gap-3">
+											<button type="button" onClick={() => handleEditClick(inventory)} className="rounded p-1 text-[#1463ff] transition-colors hover:bg-blue-50" aria-label={`Edit inventory login ${inventory.name}`}><Edit className="h-[18px] w-[18px]" /></button>
+											<button type="button" onClick={() => { setSelectedInventory(inventory); setIsDeleteModalOpen(true); }} className="rounded p-1 text-[#ff0000] transition-colors hover:bg-red-50" aria-label={`Delete inventory login ${inventory.name}`}><Trash2 className="h-[18px] w-[18px]" /></button>
+										</div>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
 				</div>
-			</section>
+			</div>
 
 			{isEditModalOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

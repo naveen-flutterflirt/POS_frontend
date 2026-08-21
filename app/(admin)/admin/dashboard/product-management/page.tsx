@@ -170,7 +170,7 @@ export default function ProductManagementPage() {
 
         {/* Table - No Horizontal Scroll */}
         <div className="scrollbar-none overflow-x-auto">
-          <table className="w-full table-auto">
+          <table className="w-full min-w-[800px] table-auto">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-4 py-3 text-left text-xs font-nunito font-medium text-gray-600 uppercase tracking-wider">

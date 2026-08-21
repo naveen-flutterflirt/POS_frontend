@@ -53,66 +53,57 @@ export default function StoreManagementPage() {
 	};
 
 	return (
-		<div className="h-full max-h-full space-y-6 overflow-hidden font-nunito">
-			<div className="flex items-start justify-between gap-6">
+		<div className="space-y-4 font-nunito">
+			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div>
-					<h1 className="text-2xl font-poppins font-medium text-gray-800">
-						Store Management
-					</h1>
-					<div className="mt-1 flex items-center gap-2 text-sm font-nunito text-gray-500">
-						<span>Admin</span>
-						<span className="text-lg text-gray-400">›</span>
-						<span className="text-gray-800">Store Management</span>
+					<h1 className="font-poppins text-xl font-medium text-gray-800 sm:text-2xl">Store Management</h1>
+					<div className="mt-1 flex items-center gap-2 font-nunito text-sm text-gray-500">
+						<span>Admin</span><span className="text-lg text-gray-400">›</span><span className="text-gray-800">Store Management</span>
 					</div>
 				</div>
-
-				<Link
-					href="/admin/dashboard/store-management/create"
-					className="mt-1 flex min-w-[147px] items-center justify-center rounded-lg bg-[#622581] px-4 py-3 text-sm font-nunito font-semibold text-white transition-colors hover:bg-[#52206d]"
-				>
+				<Link href="/admin/dashboard/store-management/create" className="flex items-center justify-center rounded-lg bg-[#622581] px-4 py-2.5 font-nunito text-sm font-semibold text-white transition-colors hover:bg-[#52206d]">
 					Add Store
 				</Link>
 			</div>
 
-			<section className="h-[calc(100vh-190px)] min-h-0 overflow-hidden border border-gray-100 bg-white">
-				<div className="px-7 py-7">
-					<h2 className="text-base font-poppins font-medium text-gray-800">
-						Stores Details
-					</h2>
+			<div className="bg-white">
+				<div className="px-5 py-4 sm:px-7">
+					<h2 className="font-poppins text-base font-medium text-gray-800">Stores Details</h2>
 				</div>
-
-				<div className="overflow-hidden text-xs font-normal text-gray-800">
-					<div className="grid h-11 grid-cols-[25%_18%_38%_19%] items-center bg-[#f3f3f3] text-left">
-						<div className="px-3 whitespace-nowrap">Store Name</div>
-						<div className="px-3 whitespace-nowrap">Code</div>
-						<div className="px-3 whitespace-nowrap">Address</div>
-						<div className="px-3 whitespace-nowrap text-center">Actions</div>
-					</div>
-
-					{stores.map((store) => (
-						<div key={store.id} className="grid h-[50px] grid-cols-[25%_18%_38%_19%] items-center border-b border-[#e2e6eb]">
-							<div className="flex items-center gap-3 px-3 whitespace-nowrap">
-								<div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full">
-									<Image src="/Images/image.png" alt="Store profile" fill className="object-cover" />
-								</div>
-								<span>{store.name}</span>
-							</div>
-							<div className="px-3 whitespace-nowrap">{store.code}</div>
-							<div className="px-3 leading-4">{store.address}</div>
-							<div className="px-3">
-								<div className="flex items-center justify-center gap-3">
-									<button type="button" onClick={() => handleEditClick(store)} className="rounded p-1 text-[#1463ff] transition-colors hover:bg-blue-50" aria-label={`Edit store ${store.name}`}>
-										<Edit className="h-[18px] w-[18px]" />
-									</button>
-									<button type="button" onClick={() => { setSelectedStore(store); setIsDeleteModalOpen(true); }} className="rounded p-1 text-[#ff0000] transition-colors hover:bg-red-50" aria-label={`Delete store ${store.name}`}>
-										<Trash2 className="h-[18px] w-[18px]" />
-									</button>
-								</div>
-							</div>
-						</div>
-					))}
+				<div className="scrollbar-none overflow-x-auto">
+					<table className="w-full min-w-[560px] border-collapse font-nunito text-sm">
+						<thead>
+							<tr className="border-y border-gray-200 bg-gray-50">
+								{["Store Name", "Code", "Address", "Actions"].map((col) => (
+									<th key={col} className="whitespace-nowrap px-4 py-3 text-left font-nunito text-sm font-normal text-gray-600 first:pl-7 last:pr-7">{col}</th>
+								))}
+							</tr>
+						</thead>
+						<tbody className="divide-y divide-gray-100">
+							{stores.map((store) => (
+								<tr key={store.id} className="transition-colors hover:bg-gray-50">
+									<td className="whitespace-nowrap px-4 py-3 pl-7">
+										<div className="flex items-center gap-3">
+											<div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full">
+												<Image src="/Images/image.png" alt="Store" fill className="object-cover" />
+											</div>
+											<span className="font-nunito text-gray-700">{store.name}</span>
+										</div>
+									</td>
+									<td className="whitespace-nowrap px-4 py-3 font-nunito text-gray-700">{store.code}</td>
+									<td className="px-4 py-3 font-nunito text-sm text-gray-700 max-w-[320px] leading-snug">{store.address}</td>
+									<td className="whitespace-nowrap px-4 py-3 pr-7">
+										<div className="flex items-center gap-3">
+											<button type="button" onClick={() => handleEditClick(store)} className="rounded p-1 text-[#1463ff] transition-colors hover:bg-blue-50" aria-label={`Edit store ${store.name}`}><Edit className="h-[18px] w-[18px]" /></button>
+											<button type="button" onClick={() => { setSelectedStore(store); setIsDeleteModalOpen(true); }} className="rounded p-1 text-[#ff0000] transition-colors hover:bg-red-50" aria-label={`Delete store ${store.name}`}><Trash2 className="h-[18px] w-[18px]" /></button>
+										</div>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
 				</div>
-			</section>
+			</div>
 
 			{isEditModalOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

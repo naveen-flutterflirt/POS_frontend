@@ -5,55 +5,64 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { startTransition, useEffect, useState } from "react";
 import {
-  LayoutDashboard,
-  PackageSearch,
-  ClipboardList,
   ArrowLeftRight,
-  PackageX,
-  Truck,
   Bell,
-  Search,
-  Settings,
-  LogOut,
-  UserCog,
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
+  LayoutDashboard,
+  LogOut,
   Menu,
+  PackageSearch,
+  PackageX,
+  Search,
+  Settings,
+  Truck,
+  UserCog,
   X,
 } from "lucide-react";
 
 const menuItems = [
-  { name: "Dashboard",                 icon: LayoutDashboard, path: "/inventory/dashboard" },
-  { name: "Stock Management",          icon: PackageSearch,   path: "/inventory/dashboard/stock-management" },
-  { name: "GRN",                       icon: ClipboardList,   path: "/inventory/dashboard/grn" },
-  { name: "Store To Store Transfer",   icon: ArrowLeftRight,  path: "/inventory/dashboard/store-transfer" },
-  { name: "Damage Shrinkage Management", icon: PackageX,      path: "/inventory/dashboard/damage-shrinkage" },
-  { name: "Vendor Management",         icon: Truck,           path: "/inventory/dashboard/vendor-management" },
+  { name: "Dashboard",                   icon: LayoutDashboard, path: "/inventory/dashboard" },
+  { name: "Stock Management",            icon: PackageSearch,   path: "/inventory/dashboard/stock-management" },
+  { name: "GRN",                         icon: ClipboardList,   path: "/inventory/dashboard/grn" },
+  { name: "Store To Store Transfer",     icon: ArrowLeftRight,  path: "/inventory/dashboard/store-transfer" },
+  { name: "Damage Shrinkage Management", icon: PackageX,        path: "/inventory/dashboard/damage-shrinkage" },
+  { name: "Vendor Management",           icon: Truck,           path: "/inventory/dashboard/vendor-management" },
 ];
 
 export default function InventoryLayout({ children }: { children: React.ReactNode }) {
-  const pathname  = usePathname();
-  const [activePath, setActivePath]     = useState(pathname);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const pathname = usePathname();
+  const [activePath, setActivePath]       = useState(pathname);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     startTransition(() => setActivePath(pathname));
   }, [pathname]);
 
-  return (
-    <div className="h-screen overflow-hidden bg-gray-50 font-nunito">
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 1024);
+    };
+    handleResize(); // set correct initial value
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-      {/* ══════════════ Sidebar ══════════════ */}
+  return (
+    <div className="h-dvh overflow-hidden bg-gray-50 font-nunito">
+
+      {/* ══════════ Sidebar ══════════ */}
       <aside
-        className={`scrollbar-none fixed inset-y-0 left-0 z-30 flex h-screen shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-white transition-all duration-200 lg:sticky lg:top-0 lg:z-auto ${
+        className={`scrollbar-none fixed inset-y-0 left-0 z-30 flex h-dvh shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-white transition-all duration-200 lg:sticky lg:top-0 lg:z-auto ${
           isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Logo */}
         <div className={`flex items-center gap-3 px-6 py-5 ${!isSidebarOpen ? "justify-center px-3" : ""}`}>
           <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
-            <Image src="/Images/Logo.png" alt="FlutterFlirt POS" fill className="object-contain" />
+            <Image src="/Images/Logo.png" alt="FlutterFlirt POS logo" fill className="object-contain" />
           </div>
           {isSidebarOpen && (
             <span className="whitespace-nowrap font-poppins text-lg font-semibold text-gray-800">
@@ -64,14 +73,14 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
 
         {/* Nav */}
         <nav className={`flex-1 space-y-1 py-4 ${isSidebarOpen ? "px-3" : "px-2"}`}>
-          {menuItems.map((item) => {
-            const isActive = activePath === item.path || activePath.startsWith(item.path + "/");
+          {menuItems.map(({ name, icon: Icon, path }) => {
+            const isActive = activePath === path || activePath.startsWith(`${path}/`);
             return (
               <Link
-                key={item.name}
-                href={item.path}
-                onClick={() => setActivePath(item.path)}
-                title={!isSidebarOpen ? item.name : undefined}
+                key={name}
+                href={path}
+                onClick={() => setActivePath(path)}
+                title={!isSidebarOpen ? name : undefined}
                 className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200 ${
                   !isSidebarOpen ? "justify-center" : ""
                 } ${
@@ -80,15 +89,14 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
                     : "text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581]"
                 }`}
               >
-                {/* active / hover left bar */}
                 <span
                   className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#622581] transition-opacity duration-200 ${
                     isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                   }`}
                 />
-                <item.icon className="h-5 w-5 shrink-0 transition-colors duration-200" />
+                <Icon className="h-5 w-5 shrink-0 transition-colors duration-200" />
                 {isSidebarOpen && (
-                  <span className="font-nunito text-sm font-medium leading-tight">{item.name}</span>
+                  <span className="font-nunito text-sm font-medium leading-tight">{name}</span>
                 )}
               </Link>
             );
@@ -106,15 +114,15 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
         />
       )}
 
-      {/* ══════════════ Main area ══════════════ */}
+      {/* ══════════ Main area ══════════ */}
       <div
-        className={`h-screen min-w-0 transition-all duration-200 ${
+        className={`h-dvh min-w-0 transition-all duration-200 ${
           isSidebarOpen ? "lg:ml-64" : "lg:ml-20"
         }`}
       >
         {/* Header */}
         <header
-          className={`fixed right-0 top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-3 py-3 transition-all duration-200 sm:px-6 ${
+          className={`fixed left-0 right-0 top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-3 py-3 transition-all duration-200 sm:px-6 ${
             isSidebarOpen ? "lg:left-64" : "lg:left-20"
           }`}
         >
@@ -128,15 +136,12 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
               aria-expanded={isSidebarOpen}
             >
               <span className="hidden lg:block">
-                {isSidebarOpen
-                  ? <ChevronLeft className="h-5 w-5" />
-                  : <ChevronRight className="h-5 w-5" />}
+                {isSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
               </span>
               <span className="lg:hidden">
                 {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </span>
             </button>
-
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
               <Image src="/Images/Avatar.png" alt="Inventory user avatar" fill className="object-cover" />
             </div>
@@ -152,10 +157,9 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
               <input
                 type="text"
                 placeholder="Search"
-                className="w-48 rounded-lg border border-gray-200 py-2 pl-9 pr-4 text-sm outline-none transition focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/30 lg:w-64"
+                className="w-48 rounded-lg border border-gray-200 py-2 pl-9 pr-4 font-nunito text-sm outline-none transition focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/30 lg:w-64"
               />
             </div>
-
             <button
               type="button"
               className="relative rounded-lg p-2 text-gray-500 transition-colors hover:bg-[#622581]/10 hover:text-[#622581]"
@@ -164,7 +168,6 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
               <Bell className="h-5 w-5" />
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
             </button>
-
             <div className="relative">
               <button
                 type="button"
@@ -174,22 +177,13 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
               >
                 <UserCog className="h-5 w-5" />
               </button>
-
               {isProfileOpen && (
                 <div className="absolute right-0 top-11 z-20 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-[#622581]/10 hover:text-[#622581]"
-                  >
-                    <Settings className="h-4 w-4" />
-                    Settings
+                  <button type="button" className="flex w-full items-center gap-3 px-4 py-2 font-nunito text-sm text-gray-700 transition-colors hover:bg-[#622581]/10 hover:text-[#622581]">
+                    <Settings className="h-4 w-4" /> Settings
                   </button>
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-red-50 hover:text-red-600"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Logout
+                  <button type="button" className="flex w-full items-center gap-3 px-4 py-2 font-nunito text-sm text-gray-700 transition-colors hover:bg-red-50 hover:text-red-600">
+                    <LogOut className="h-4 w-4" /> Logout
                   </button>
                 </div>
               )}

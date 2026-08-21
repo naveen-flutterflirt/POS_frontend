@@ -51,46 +51,46 @@ export default function CustomerProfilesPage() {
   };
 
   return (
-    <div className="h-full max-h-full space-y-6 overflow-hidden font-nunito">
+    <div className="space-y-4 font-nunito">
       <div>
-        <h1 className="text-2xl font-poppins font-medium text-gray-800">Customer Management</h1>
-        <div className="mt-1 flex items-center gap-2 text-sm font-nunito text-gray-500">
-          <span>Admin</span>
-          <span className="text-lg text-gray-400">›</span>
-          <span>Customer Management</span>
-          <span className="text-lg text-gray-400">›</span>
-          <span className="text-gray-800">Customer Profiles</span>
+        <h1 className="font-poppins text-xl font-medium text-gray-800 sm:text-2xl">Customer Management</h1>
+        <div className="mt-1 flex items-center gap-2 font-nunito text-sm text-gray-500">
+          <span>Admin</span><span className="text-lg text-gray-400">›</span><span>Customer Management</span><span className="text-lg text-gray-400">›</span><span className="text-gray-800">Customer Profiles</span>
         </div>
       </div>
 
-      <section className="h-[calc(100vh-190px)] min-h-0 overflow-hidden border border-gray-100 bg-white">
-        <div className="px-7 py-7">
-          <h2 className="text-base font-poppins font-medium text-gray-800">Customers Details</h2>
+      <div className="bg-white">
+        <div className="px-5 py-4 sm:px-7">
+          <h2 className="font-poppins text-base font-medium text-gray-800">Customers Details</h2>
         </div>
-
-        <div className="overflow-hidden text-xs font-normal text-gray-800">
-          <div className="grid h-12 grid-cols-[20%_20%_20%_20%_20%] items-center bg-[#f3f3f3] text-left">
-            <div className="px-3 text-center whitespace-nowrap">Name</div>
-            <div className="px-3 text-center whitespace-nowrap">Gmail</div>
-            <div className="px-3 text-center whitespace-nowrap">Phone Number</div>
-            <div className="px-3 text-center whitespace-nowrap">Pin Code</div>
-            <div className="px-3 text-center whitespace-nowrap">Actions</div>
-          </div>
-
-          {customers.map((customer) => (
-            <div key={customer.id} className="grid h-[55px] grid-cols-[20%_20%_20%_20%_20%] items-center border-b border-[#e2e6eb]">
-              <div className="px-3 text-center whitespace-nowrap">{customer.name}</div>
-              <div className="px-3 text-center whitespace-nowrap">{customer.email}</div>
-              <div className="px-3 text-center whitespace-nowrap">{customer.phone}</div>
-              <div className="px-3 text-center whitespace-nowrap">{customer.pinCode}</div>
-              <div className="px-3"><div className="flex items-center justify-center gap-3">
-                <button type="button" onClick={() => handleEditClick(customer)} className="rounded p-1 text-[#1463ff] transition-colors hover:bg-blue-50" aria-label={`Edit customer ${customer.name}`}><Edit className="h-[18px] w-[18px]" /></button>
-                <button type="button" onClick={() => { setSelectedCustomer(customer); setIsDeleteModalOpen(true); }} className="rounded p-1 text-[#ff0000] transition-colors hover:bg-red-50" aria-label={`Delete customer ${customer.name}`}><Trash2 className="h-[18px] w-[18px]" /></button>
-              </div></div>
-            </div>
-          ))}
+        <div className="scrollbar-none overflow-x-auto">
+          <table className="w-full min-w-[560px] border-collapse font-nunito text-sm">
+            <thead>
+              <tr className="border-y border-gray-200 bg-gray-50">
+                {["Name", "Gmail", "Phone Number", "Pin Code", "Actions"].map((col) => (
+                  <th key={col} className="whitespace-nowrap px-4 py-3 text-center font-nunito text-sm font-normal text-gray-600 first:pl-7 last:pr-7">{col}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {customers.map((customer) => (
+                <tr key={customer.id} className="transition-colors hover:bg-gray-50">
+                  <td className="whitespace-nowrap px-4 py-3 pl-7 text-center font-nunito text-gray-700">{customer.name}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-center font-nunito text-gray-700">{customer.email}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-center font-nunito text-gray-700">{customer.phone}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-center font-nunito text-gray-700">{customer.pinCode}</td>
+                  <td className="whitespace-nowrap px-4 py-3 pr-7 text-center">
+                    <div className="flex items-center justify-center gap-3">
+                      <button type="button" onClick={() => handleEditClick(customer)} className="rounded p-1 text-[#1463ff] transition-colors hover:bg-blue-50" aria-label={`Edit customer ${customer.name}`}><Edit className="h-[18px] w-[18px]" /></button>
+                      <button type="button" onClick={() => { setSelectedCustomer(customer); setIsDeleteModalOpen(true); }} className="rounded p-1 text-[#ff0000] transition-colors hover:bg-red-50" aria-label={`Delete customer ${customer.name}`}><Trash2 className="h-[18px] w-[18px]" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </section>
+      </div>
 
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl">

@@ -10,7 +10,7 @@ module.exports = {
     extend: {
       fontFamily: {
         poppins: ["var(--font-poppins)"],
-        nunito: ["var(--font-nunito-sans)"],
+        nunito:  ["var(--font-nunito)"],
       },
     },
   },
