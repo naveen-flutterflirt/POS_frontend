@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Edit, Trash2, X } from "lucide-react";
 
@@ -32,7 +32,27 @@ const emptyCashier: Cashier = {
 };
 
 export default function CashierPage() {
-	const [cashiers, setCashiers] = useState(initialCashiers);
+	const [cashiers, setCashiers] = useState<Cashier[]>([]);
+
+	useEffect(() => {
+		const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+		fetch(`${apiUrl}/users`)
+			.then((res) => res.json())
+			.then((data) => {
+				if (Array.isArray(data)) {
+					const mapped: Cashier[] = data.map((u: any) => ({
+						id: u.id,
+						name: u.name,
+						email: u.email,
+						password: u.password || "********",
+						mobile: u.mobileNumber || "",
+						store: "Madhuvana Spices",
+					}));
+					setCashiers(mapped);
+				}
+			})
+			.catch(console.error);
+	}, []);
 	const [formData, setFormData] = useState(emptyCashier);
 	const [selectedCashier, setSelectedCashier] = useState<Cashier | null>(null);
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
