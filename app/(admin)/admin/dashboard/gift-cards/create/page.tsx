@@ -1,0 +1,66 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { CalendarDays, ChevronDown } from "lucide-react";
+
+export default function CreateGiftCardPage() {
+  const [formData, setFormData] = useState({
+    cardName: "",
+    cardValue: "",
+    cardCode: "",
+    issuedTo: "",
+    balance: "",
+    status: "",
+    startDate: "",
+    endDate: "",
+  });
+
+  const updateField = (field: keyof typeof formData, value: string) => {
+    setFormData((currentData) => ({ ...currentData, [field]: value }));
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    console.log("Gift Card Data:", formData);
+  };
+
+  const inputClass = "mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-2 py-2.5 text-sm text-gray-700 outline-none placeholder:text-gray-400 focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20";
+
+  return (
+    <div className="scrollbar-none min-h-full min-w-0 space-y-6 overflow-x-hidden overflow-y-auto font-nunito">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-poppins font-medium text-gray-800">Customer Management</h1>
+          <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+            <Link href="/admin/dashboard" className="hover:text-[#622581]">Admin</Link>
+            <span className="text-lg text-gray-400">›</span>
+            <span>Customer Management</span>
+            <span className="text-lg text-gray-400">›</span>
+            <span className="text-gray-800">Create Gift Card</span>
+          </div>
+        </div>
+        <Link href="/admin/dashboard/gift-cards" className="mt-1 text-sm text-[#622581] hover:text-[#4d1d67]">Back to Gift Cards</Link>
+      </div>
+
+      <section className="min-h-[calc(100vh-190px)] border border-gray-100 bg-white">
+        <div className="flex min-h-[calc(100vh-190px)] flex-col px-8 py-7">
+          <h2 className="text-base font-poppins font-medium text-gray-800">Create Gift Card</h2>
+          <form onSubmit={handleSubmit} className="mt-5 flex flex-1 flex-col">
+            <div className="grid grid-cols-1 gap-x-10 gap-y-3 md:grid-cols-2 lg:gap-x-20 xl:gap-x-36">
+              <label className="text-sm text-gray-800">Card Name<input required placeholder="Enter card name" value={formData.cardName} onChange={(event) => updateField("cardName", event.target.value)} className={inputClass} /></label>
+              <label className="text-sm text-gray-800">Card Value<input required placeholder="Enter card value" value={formData.cardValue} onChange={(event) => updateField("cardValue", event.target.value)} className={inputClass} /></label>
+              <label className="text-sm text-gray-800">Card Code<input required placeholder="Enter card code" value={formData.cardCode} onChange={(event) => updateField("cardCode", event.target.value)} className={inputClass} /></label>
+              <label className="text-sm text-gray-800">Issued To<input required placeholder="Enter recipient" value={formData.issuedTo} onChange={(event) => updateField("issuedTo", event.target.value)} className={inputClass} /></label>
+              <label className="text-sm text-gray-800">Balance<input required placeholder="Enter balance" value={formData.balance} onChange={(event) => updateField("balance", event.target.value)} className={inputClass} /></label>
+              <label className="relative text-sm text-gray-800">Status<select required value={formData.status} onChange={(event) => updateField("status", event.target.value)} className={`${inputClass} appearance-none`}><option value="">Select Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select><ChevronDown className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 text-gray-400" /></label>
+              <label className="relative text-sm text-gray-800">Start Date<input required type="date" value={formData.startDate} onChange={(event) => updateField("startDate", event.target.value)} className={`${inputClass} pr-9`} /><CalendarDays className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 text-gray-400" /></label>
+              <label className="relative text-sm text-gray-800">End Date<input required type="date" value={formData.endDate} onChange={(event) => updateField("endDate", event.target.value)} className={`${inputClass} pr-9`} /><CalendarDays className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 text-gray-400" /></label>
+            </div>
+            <div className="mt-auto flex justify-end pt-6"><button type="submit" className="min-w-[128px] rounded-lg bg-[#622581] px-8 py-2.5 font-poppins text-xl font-medium text-white hover:bg-[#52206d]">Submit</button></div>
+          </form>
+        </div>
+      </section>
+    </div>
+  );
+}
