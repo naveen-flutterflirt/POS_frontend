@@ -19,7 +19,23 @@ export default function CreateCashierPage() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Cashier Data:", formData);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+    fetch(`${apiUrl}/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        mobileNumber: formData.mobile,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to create cashier");
+        window.location.href = "/admin/dashboard/cashier";
+      })
+      .catch(console.error);
   };
 
   return (
