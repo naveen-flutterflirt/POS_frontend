@@ -15,68 +15,32 @@ export default function ProductManagementPage() {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const totalPages = 10;
 
-  const [products, setProducts] = useState([
-    { 
-      id: "01", 
-      name: "Turmeric Powder", 
-      image: "/Images/image.png",
-      code: "PM123", 
-      uom: "KG", 
-      hsnCode: "123456", 
-      description: "Pure, hand-ground turmeric sourced from local farms.", 
-      fssai: "54867859494949", 
-      category: "Spices", 
-      subCategory: "Masalas" 
-    },
-    { 
-      id: "02", 
-      name: "Turmeric Powder", 
-      image: "/Images/image.png",
-      code: "PM123", 
-      uom: "KG", 
-      hsnCode: "123456", 
-      description: "Lorem ipsum dolor sit amet consectetur. In massa", 
-      fssai: "54867859494949", 
-      category: "Spices", 
-      subCategory: "Masalas" 
-    },
-    { 
-      id: "03", 
-      name: "Turmeric Powder", 
-      image: "/Images/image.png",
-      code: "PM123", 
-      uom: "KG", 
-      hsnCode: "123456", 
-      description: "Lorem ipsum dolor sit amet consectetur. In massa", 
-      fssai: "54867859494949", 
-      category: "Spices", 
-      subCategory: "Masalas" 
-    },
-    { 
-      id: "04", 
-      name: "Turmeric Powder", 
-      image: "/Images/image.png",
-      code: "PM123", 
-      uom: "KG", 
-      hsnCode: "123456", 
-      description: "Lorem ipsum dolor sit amet consectetur. In massa", 
-      fssai: "54867859494949", 
-      category: "Spices", 
-      subCategory: "Masalas" 
-    },
-    { 
-      id: "05", 
-      name: "Turmeric Powder", 
-      image: "/Images/image.png",
-      code: "PM123", 
-      uom: "KG", 
-      hsnCode: "123456", 
-      description: "Lorem ipsum dolor sit amet consectetur. In massa", 
-      fssai: "54867859494949", 
-      category: "Spices", 
-      subCategory: "Masalas" 
-    },
-  ]);
+  const [products, setProducts] = useState<any[]>([]);
+
+  // Load products list on mount
+  useState(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    fetch(`${apiUrl}/catalog/products`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const mapped = data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            image: "/Images/image.png", // Fallback placeholder image asset
+            code: p.code,
+            uom: p.uom,
+            hsnCode: p.hsnCode,
+            description: p.description || "",
+            fssai: p.fssaiNumber || "",
+            category: p.category?.name || "Category",
+            subCategory: p.subCategory?.name || p.subcategoryId,
+          }));
+          setProducts(mapped);
+        }
+      })
+      .catch(console.error);
+  });
 
   const [editFormData, setEditFormData] = useState({
     name: "",

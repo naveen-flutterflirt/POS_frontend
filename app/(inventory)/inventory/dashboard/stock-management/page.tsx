@@ -74,11 +74,43 @@ const editFields: { field: StockField; label: string }[] = [
 export default function StockManagementPage() {
   const router = useRouter();
 
-  const [stocks, setStocks]             = useState<Stock[]>(initialStocks);
+  const [stocks, setStocks]             = useState<Stock[]>([]);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [isEditOpen, setIsEditOpen]     = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [editForm, setEditForm]         = useState<Stock>(initialStocks[0]);
+  const [editForm, setEditForm]         = useState<Stock>({} as Stock);
+
+  // Load stocks on mount
+  useState(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    fetch(`${apiUrl}/inventory/stores/STORE_DEFAULT/batches`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const mapped: Stock[] = data.map((b: any) => ({
+            id: b.id,
+            stockCode: b.sku?.skuCode || b.skuId,
+            stockName: b.sku?.product?.name || "Product SKU",
+            batchNo: b.batchNumber,
+            uom: b.sku?.uom || "PCS",
+            quantity: String(b.quantity),
+            mnfDate: b.manufacturingDate ? new Date(b.manufacturingDate).toLocaleDateString() : "",
+            expiryDate: b.expiryDate ? new Date(b.expiryDate).toLocaleDateString() : "",
+            stockValue: String(b.stockValue || 0),
+            receivedDate: b.receivedDate ? new Date(b.receivedDate).toLocaleDateString() : "",
+            store: b.warehouseId || "Warehouse",
+            transportCost: String(b.transportationCost || 0),
+            paymentStatus: b.paymentStatus || "Pending",
+            vendor: b.vendorId || "Vendor",
+            invoiceNumber: b.invoiceNumber || "",
+            cgstIgstSgst: b.cgstIgstSgst || "",
+            description: b.description || "",
+          }));
+          setStocks(mapped);
+        }
+      })
+      .catch(console.error);
+  });
 
   /* ── Edit ── */
   const openEdit = (row: Stock) => {
@@ -88,9 +120,29 @@ export default function StockManagementPage() {
   };
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setStocks((prev) => prev.map((s) => (s.id === editForm.id ? editForm : s)));
-    setIsEditOpen(false);
-    setSelectedStock(null);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    // Perform PUT adjustment on backend
+    fetch(`${apiUrl}/inventory/adjust`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        storeId: editForm.store === "Warehouse" ? "STORE_DEFAULT" : editForm.store,
+        skuId: editForm.stockCode,
+        batchId: String(editForm.id),
+        movementType: "ADJUSTMENT",
+        quantity: Number(editForm.quantity),
+        unitCost: Number(editForm.stockValue) / (Number(editForm.quantity) || 1),
+        referenceType: "ADJUSTMENT",
+        referenceId: "FRONTEND_EDIT",
+        direction: "IN",
+      }),
+    })
+      .then(() => {
+        setStocks((prev) => prev.map((s) => (s.id === editForm.id ? editForm : s)));
+        setIsEditOpen(false);
+        setSelectedStock(null);
+      })
+      .catch(console.error);
   };
   const updateField = (field: keyof Stock, value: string) =>
     setEditForm((prev) => ({ ...prev, [field]: value }));

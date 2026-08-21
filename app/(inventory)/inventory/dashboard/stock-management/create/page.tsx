@@ -44,7 +44,45 @@ export default function AddStockPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/inventory/dashboard/stock-management");
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    
+    // Call backend API to create batch and adjust stock
+    fetch(`${apiUrl}/inventory/batches`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        skuId: form.productId,
+        batchNumber: form.batchNumber,
+        manufacturingDate: form.manufacturedDate ? new Date(form.manufacturedDate) : undefined,
+        expiryDate: form.expiredDate ? new Date(form.expiredDate) : undefined,
+        storeId: form.store || "STORE_DEFAULT",
+        vendorId: form.vendor || "VENDOR_DEFAULT",
+        quantity: Number(form.quantity) || 0,
+        unitCost: Number(form.stockValue) / (Number(form.quantity) || 1),
+      }),
+    })
+      .then((res) => res.json())
+      .then((batch) => {
+        return fetch(`${apiUrl}/inventory/adjust`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            storeId: form.store || "STORE_DEFAULT",
+            skuId: form.productId,
+            batchId: batch.id,
+            movementType: "GRN_RECEIPT",
+            quantity: Number(form.quantity) || 0,
+            unitCost: Number(form.stockValue) / (Number(form.quantity) || 1),
+            referenceType: "BATCH_CREATION",
+            referenceId: batch.id,
+            direction: "IN",
+          }),
+        });
+      })
+      .then(() => {
+        router.push("/inventory/dashboard/stock-management");
+      })
+      .catch(console.error);
   };
 
   return (

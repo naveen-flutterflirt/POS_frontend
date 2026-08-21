@@ -48,11 +48,41 @@ const editFields: { field: keyof Omit<Shrinkage, "id">; label: string }[] = [
 export default function DamageShrinkagePage() {
   const router = useRouter();
 
-  const [rows, setRows]               = useState<Shrinkage[]>(initialData);
+  const [rows, setRows]               = useState<Shrinkage[]>([]);
   const [selected, setSelected]       = useState<Shrinkage | null>(null);
   const [isEditOpen, setIsEditOpen]   = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [editForm, setEditForm]       = useState<Shrinkage>(initialData[0]);
+  const [editForm, setEditForm]       = useState<Shrinkage>({} as Shrinkage);
+
+  // Load shrinkage/damage logs on mount
+  useState(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    fetch(`${apiUrl}/inventory/stores/STORE_DEFAULT/ledger`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          // Filter ledger logs that are damages/shrinkages
+          const shrinkages = data.filter((item: any) => 
+            item.movementType === "DAMAGE" || item.movementType === "SHRINKAGE" || item.movementType === "ADJUSTMENT"
+          );
+          const mapped: Shrinkage[] = shrinkages.map((item: any) => ({
+            id: item.id,
+            stockName: item.sku?.product?.name || "Product SKU",
+            qty: String(item.qtyDelta || item.quantity),
+            mnfDate: "",
+            expDate: "",
+            receivedDate: item.occurredAt ? new Date(item.occurredAt).toLocaleDateString() : "",
+            stockValue: String(Number(item.unitCost) * (Number(item.qtyDelta || item.quantity) || 1)),
+            auditedBy: item.auditedBy || "Auditor",
+            approvedBy: item.approvedBy || "Manager",
+            shrinkageType: item.shrinkageType || item.movementType,
+            description: item.metadata || "",
+          }));
+          setRows(mapped);
+        }
+      })
+      .catch(console.error);
+  });
 
   /* ── Edit ── */
   const openEdit = (row: Shrinkage) => { setEditForm(row); setSelected(row); setIsEditOpen(true); };

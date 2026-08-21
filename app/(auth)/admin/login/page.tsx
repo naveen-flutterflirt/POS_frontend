@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { signIn, confirmSignIn } from 'aws-amplify/auth';
 
 // ── error helper ──────────────────────────────────────────────────────────────
@@ -46,11 +47,26 @@ const PASSWORD_RULES = [
   { test: (p: string) => /[^A-Za-z0-9]/.test(p), label: 'One special character (@, #, $, !)' },
 ];
 
+import { getCurrentUser } from 'aws-amplify/auth';
+import { useEffect } from 'react';
+
 // ── component ─────────────────────────────────────────────────────────────────
 
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Auto redirect if already signed in
+  useEffect(() => {
+    getCurrentUser()
+      .then(() => {
+        window.location.href = '/admin/dashboard';
+      })
+      .catch(() => {
+        // Not signed in, continue normal rendering
+      });
+  }, []);
 
   // First-login / admin-created user flow
   const [isFirstLogin, setIsFirstLogin] = useState(false);

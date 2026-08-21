@@ -25,7 +25,29 @@ export default function AddShrinkagePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/inventory/dashboard/damage-shrinkage");
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+    fetch(`${apiUrl}/inventory/adjust`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        storeId: "STORE_DEFAULT",
+        skuId: stockName, // Stock product reference selected
+        movementType: shrinkageType || "SHRINKAGE",
+        quantity: Number(shrinkageQty) || 0,
+        unitCost: 0, // Costs calculated dynamically or zero-valuation writeoff
+        referenceType: "SHRINKAGE",
+        referenceId: "FRONTEND_ADD",
+        direction: "OUT",
+        auditedBy,
+        approvedBy,
+        metadata: description,
+      }),
+    })
+      .then(() => {
+        router.push("/inventory/dashboard/damage-shrinkage");
+      })
+      .catch(console.error);
   };
 
   const selectType = (type: string) => {

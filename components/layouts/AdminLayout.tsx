@@ -33,29 +33,29 @@ type MenuItem =
   | { name: string; icon: React.ElementType; path?: never; subItems: { name: string; path: string }[] };
 
 const menuItems: MenuItem[] = [
-  { name: "Dashboard",         icon: LayoutDashboard, path: "/admin/dashboard" },
+  { name: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
   {
     name: "Category Management", icon: Layers,
     subItems: [
-      { name: "Categories",     path: "/admin/dashboard/categories" },
+      { name: "Categories", path: "/admin/dashboard/categories" },
       { name: "Sub-Categories", path: "/admin/dashboard/sub-categories" },
     ],
   },
-  { name: "Price Management",   icon: Tag,         path: "/admin/dashboard/price-management" },
-  { name: "Product Management", icon: Package,     path: "/admin/dashboard/product-management" },
-  { name: "Payment Details",    icon: CreditCard,  path: "/admin/dashboard/payment-details" },
-  { name: "Cashier",            icon: UserCog,     path: "/admin/dashboard/cashier" },
-  { name: "Inventory",          icon: Warehouse,   path: "/admin/dashboard/inventory" },
-  { name: "Store Management",   icon: Store,       path: "/admin/dashboard/store-management" },
-  { name: "Print Management",   icon: Printer,     path: "/admin/dashboard/print-management" },
+  { name: "Price Management", icon: Tag, path: "/admin/dashboard/price-management" },
+  { name: "Product Management", icon: Package, path: "/admin/dashboard/product-management" },
+  { name: "Payment Details", icon: CreditCard, path: "/admin/dashboard/payment-details" },
+  { name: "Cashier", icon: UserCog, path: "/admin/dashboard/cashier" },
+  { name: "Inventory", icon: Warehouse, path: "/admin/dashboard/inventory" },
+  { name: "Store Management", icon: Store, path: "/admin/dashboard/store-management" },
+  { name: "Print Management", icon: Printer, path: "/admin/dashboard/print-management" },
   { name: "Tax/GST Management", icon: ReceiptText, path: "/admin/dashboard/tax-gst-management" },
   {
     name: "Customer Management", icon: Users,
     subItems: [
-      { name: "Customer Profiles",   path: "/admin/dashboard/customer-profiles" },
-      { name: "Purchase History",    path: "/admin/dashboard/purchase-history" },
-      { name: "Loyalty Programs",    path: "/admin/dashboard/loyalty-programs" },
-      { name: "Coupons & Gift Cards",path: "/admin/dashboard/coupons-and-gift-cards" },
+      { name: "Customer Profiles", path: "/admin/dashboard/customer-profiles" },
+      { name: "Purchase History", path: "/admin/dashboard/purchase-history" },
+      { name: "Loyalty Programs", path: "/admin/dashboard/loyalty-programs" },
+      { name: "Coupons & Gift Cards", path: "/admin/dashboard/coupons-and-gift-cards" },
       { name: "Personalized Offers", path: "/admin/dashboard/personalized-offers" },
     ],
   },
@@ -68,7 +68,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [openGroups, setOpenGroups]       = useState<Record<string, boolean>>({});
-
+  const [mounted, setMounted]             = useState(false);
+ 
   const handleLogout = async () => {
     try {
       await signOut();
@@ -77,11 +78,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       console.error("Error signing out: ", error);
     }
   };
-
+ 
   useEffect(() => {
+    setMounted(true);
     startTransition(() => setActivePath(pathname));
   }, [pathname]);
-
+ 
   useEffect(() => {
     const handleResize = () => {
       setIsSidebarOpen(window.innerWidth >= 1024);
@@ -90,18 +92,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
+ 
   const toggleGroup = (name: string) =>
     setOpenGroups((prev) => ({ ...prev, [name]: !prev[name] }));
+
+  if (!mounted) {
+    return (
+      <div className="h-screen w-screen bg-gray-50 flex items-center justify-center font-nunito text-gray-500">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="h-dvh overflow-hidden bg-gray-50 font-nunito">
 
       {/* ══════════ Sidebar ══════════ */}
       <aside
-        className={`scrollbar-none fixed inset-y-0 left-0 z-30 flex h-dvh shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-white transition-all duration-200 lg:sticky lg:top-0 lg:z-auto ${
-          isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0"
-        }`}
+        className={`scrollbar-none fixed inset-y-0 left-0 z-30 flex h-dvh shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-white transition-all duration-200 lg:sticky lg:top-0 lg:z-auto ${isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0"
+          }`}
       >
         {/* Logo */}
         <div className={`flex items-center gap-3 px-6 py-5 ${!isSidebarOpen ? "justify-center px-3" : ""}`}>
@@ -130,9 +139,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     type="button"
                     onClick={() => toggleGroup(item.name)}
                     title={!isSidebarOpen ? item.name : undefined}
-                    className={`group relative flex w-full items-center justify-between rounded-lg px-3 py-2.5 transition-all duration-200 ${
-                      !isSidebarOpen ? "justify-center" : ""
-                    } text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581]`}
+                    className={`group relative flex w-full items-center justify-between rounded-lg px-3 py-2.5 transition-all duration-200 ${!isSidebarOpen ? "justify-center" : ""
+                      } text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581]`}
                   >
                     <span className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#622581] opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                     <div className="flex items-center gap-3">
@@ -155,16 +163,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             key={sub.name}
                             href={sub.path}
                             onClick={() => setActivePath(sub.path)}
-                            className={`group relative block rounded-lg px-3 py-2 font-nunito text-sm transition-all duration-200 ${
-                              isSubActive
+                            className={`group relative block rounded-lg px-3 py-2 font-nunito text-sm transition-all duration-200 ${isSubActive
                                 ? "bg-[#622581]/10 font-semibold text-[#622581]"
                                 : "text-gray-600 hover:bg-[#622581]/10 hover:text-[#622581]"
-                            }`}
+                              }`}
                           >
                             <span
-                              className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#622581] transition-opacity duration-200 ${
-                                isSubActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                              }`}
+                              className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#622581] transition-opacity duration-200 ${isSubActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                }`}
                             />
                             {sub.name}
                           </Link>
@@ -182,18 +188,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.path!}
                 onClick={() => setActivePath(item.path!)}
                 title={!isSidebarOpen ? item.name : undefined}
-                className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200 ${
-                  !isSidebarOpen ? "justify-center" : ""
-                } ${
-                  isActive
+                className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200 ${!isSidebarOpen ? "justify-center" : ""
+                  } ${isActive
                     ? "bg-[#622581]/10 text-[#622581]"
                     : "text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581]"
-                }`}
+                  }`}
               >
                 <span
-                  className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#622581] transition-opacity duration-200 ${
-                    isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                  }`}
+                  className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#622581] transition-opacity duration-200 ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    }`}
                 />
                 <item.icon className="h-5 w-5 shrink-0 transition-colors duration-200" />
                 {isSidebarOpen && (
@@ -217,15 +220,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* ══════════ Main area ══════════ */}
       <div
-        className={`h-dvh min-w-0 transition-all duration-200 ${
-          isSidebarOpen ? "lg:ml-64" : "lg:ml-20"
-        }`}
+        className={`h-dvh min-w-0 transition-all duration-200 ${isSidebarOpen ? "lg:ml-64" : "lg:ml-20"
+          }`}
       >
         {/* Header */}
         <header
-          className={`fixed left-0 right-0 top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-3 py-3 transition-all duration-200 sm:px-6 ${
-            isSidebarOpen ? "lg:left-64" : "lg:left-20"
-          }`}
+          className={`fixed left-0 right-0 top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-3 py-3 transition-all duration-200 sm:px-6 ${isSidebarOpen ? "lg:left-64" : "lg:left-20"
+            }`}
         >
           {/* Left: toggle + avatar + greeting */}
           <div className="flex items-center gap-3">
@@ -276,7 +277,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Settings className="w-4 h-4" />
                   Settings
                 </button>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581] transition-colors duration-200 cursor-pointer">
                   <LogOut className="w-4 h-4" />

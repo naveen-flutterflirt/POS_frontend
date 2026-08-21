@@ -32,7 +32,27 @@ export default function CreateProductPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form Data:", formData);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+    fetch(`${apiUrl}/catalog/products`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: formData.productCode,
+        name: formData.productName,
+        description: formData.description,
+        uom: formData.uom,
+        hsnCode: formData.hsnCode,
+        categoryId: "CAT_DEFAULT",
+        subcategoryId: formData.subCategory || "SUBCAT_DEFAULT",
+        fssaiNumber: formData.fssai,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to create product");
+        window.location.href = "/admin/dashboard/product-management";
+      })
+      .catch(console.error);
   };
 
   return (
