@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "aws-amplify/auth";
 import { startTransition, useEffect, useState } from "react";
 import {
   LayoutDashboard,
@@ -60,11 +61,21 @@ const menuItems = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [activePath, setActivePath] = useState(pathname);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isCustomerOpen, setIsCustomerOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.push("/admin/login");
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
+  };
 
   useEffect(() => {
     startTransition(() => setActivePath(pathname));
@@ -271,7 +282,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Settings className="w-4 h-4" />
                   Settings
                 </button>
-                <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581] transition-colors duration-200 cursor-pointer">
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581] transition-colors duration-200 cursor-pointer">
                   <LogOut className="w-4 h-4" />
                   Logout
                 </button>

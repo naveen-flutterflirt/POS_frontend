@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "aws-amplify/auth";
 import { useState } from "react";
 import {
   Archive,
@@ -38,8 +39,18 @@ const menuItems = [
 
 export default function CashierLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.push("/cashier/login");
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
+  };
 
   return (
     <main className="h-dvh overflow-hidden bg-gray-50 font-nunito text-[#111111]">
@@ -161,6 +172,7 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
                   </button>
                   <button
                     type="button"
+                    onClick={handleLogout}
                     className="flex w-full items-center gap-3 px-4 py-2 text-sm hover:bg-red-50 text-gray-700 hover:text-red-600"
                   >
                     <LogOut className="h-4 w-4" />
