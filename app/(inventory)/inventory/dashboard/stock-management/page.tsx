@@ -54,31 +54,31 @@ const columns = [
 type StockField = keyof Omit<Stock, "id" | "paymentStatus">;
 
 const editFields: { field: StockField; label: string }[] = [
-  { field: "stockCode",     label: "Stock Code" },
-  { field: "stockName",     label: "Stock Name" },
-  { field: "batchNo",       label: "Batch No." },
-  { field: "uom",           label: "UOM" },
-  { field: "quantity",      label: "Quantity" },
-  { field: "mnfDate",       label: "Mnf Date" },
-  { field: "expiryDate",    label: "Expiry Date" },
-  { field: "stockValue",    label: "Stock Value" },
-  { field: "receivedDate",  label: "Received Date" },
-  { field: "store",         label: "Store" },
+  { field: "stockCode", label: "Stock Code" },
+  { field: "stockName", label: "Stock Name" },
+  { field: "batchNo", label: "Batch No." },
+  { field: "uom", label: "UOM" },
+  { field: "quantity", label: "Quantity" },
+  { field: "mnfDate", label: "Mnf Date" },
+  { field: "expiryDate", label: "Expiry Date" },
+  { field: "stockValue", label: "Stock Value" },
+  { field: "receivedDate", label: "Received Date" },
+  { field: "store", label: "Store" },
   { field: "transportCost", label: "Transportation Cost" },
-  { field: "vendor",        label: "Vendor" },
+  { field: "vendor", label: "Vendor" },
   { field: "invoiceNumber", label: "Invoice Number" },
-  { field: "cgstIgstSgst",  label: "CGST, IGST, SGST" },
-  { field: "description",   label: "Description" },
+  { field: "cgstIgstSgst", label: "CGST, IGST, SGST" },
+  { field: "description", label: "Description" },
 ];
 
 export default function StockManagementPage() {
   const router = useRouter();
 
-  const [stocks, setStocks]             = useState<Stock[]>([]);
+  const [stocks, setStocks] = useState<Stock[]>([]);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
-  const [isEditOpen, setIsEditOpen]     = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [editForm, setEditForm]         = useState<Stock>({} as Stock);
+  const [editForm, setEditForm] = useState<Stock>({} as Stock);
 
   // Load stocks on mount
   useEffect(() => {

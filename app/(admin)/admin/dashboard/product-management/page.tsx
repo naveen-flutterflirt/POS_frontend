@@ -16,10 +16,12 @@ export default function ProductManagementPage() {
   const totalPages = 10;
 
   const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load products list on mount
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    setIsLoading(true);
     fetch(`${apiUrl}/catalog/products`)
       .then((res) => res.json())
       .then((data) => {
@@ -39,7 +41,8 @@ export default function ProductManagementPage() {
           setProducts(mapped);
         }
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
   }, []);
 
   const [editFormData, setEditFormData] = useState({
@@ -103,8 +106,8 @@ export default function ProductManagementPage() {
             Manage Products
           </h1>
           <div className="flex items-center gap-2 text-sm font-nunito font-normal text-gray-500 mt-1">
-            <Link 
-              href="/admin/dashboard" 
+            <Link
+              href="/admin/dashboard"
               className="hover:text-[#622581] transition-colors duration-200 cursor-pointer"
             >
               Admin
@@ -113,9 +116,9 @@ export default function ProductManagementPage() {
             <span className="text-[#622581] font-medium">Product Management</span>
           </div>
         </div>
-        
+
         {/* Create Product Button - Routes to /create */}
-        <button 
+        <button
           onClick={() => router.push('/admin/dashboard/product-management/create')}
           className="flex items-center gap-2 px-4 py-2.5 bg-[#622581] hover:bg-[#622581]/90 text-white font-nunito font-medium text-sm rounded-lg transition duration-200 cursor-pointer whitespace-nowrap shadow-sm hover:shadow-md"
         >
@@ -167,67 +170,84 @@ export default function ProductManagementPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {products.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50 transition-colors duration-150">
-                  {/* Product Name with Image */}
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <span className="text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
-                        {product.name}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
-                    {product.code}
-                  </td>
-                  <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
-                    {product.uom}
-                  </td>
-                  <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
-                    {product.hsnCode}
-                  </td>
-                  <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 max-w-[150px] truncate">
-                    {product.description}
-                  </td>
-                  <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
-                    {product.fssai}
-                  </td>
-                  <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
-                    {product.category}
-                  </td>
-                  <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
-                    {product.subCategory}
-                  </td>
-                  <td className="px-4 py-4 text-sm font-nunito text-gray-700">
-                    <div className="flex items-center gap-1.5">
-                      {/* Edit Icon */}
-                      <button 
-                        onClick={() => handleEditClick(product)}
-                        className="p-1.5 text-[#1463ff] hover:text-blue-800 hover:bg-blue-50 rounded transition-colors duration-200 cursor-pointer"
-                        title="Edit"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      {/* Delete Icon */}
-                      <button 
-                        onClick={() => handleDeleteClick(product)}
-                        className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors duration-200 cursor-pointer"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#622581] border-t-transparent" />
+                      <span className="font-nunito text-sm text-gray-500">Loading products...</span>
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : products.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center font-nunito text-sm text-gray-400">
+                    No products found. Add one to get started.
+                  </td>
+                </tr>
+              ) : (
+                products.map((product) => (
+                  <tr key={product.id} className="hover:bg-gray-50 transition-colors duration-150">
+                    {/* Product Name with Image */}
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <span className="text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
+                          {product.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
+                      {product.code}
+                    </td>
+                    <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
+                      {product.uom}
+                    </td>
+                    <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
+                      {product.hsnCode}
+                    </td>
+                    <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 max-w-[150px] truncate">
+                      {product.description}
+                    </td>
+                    <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
+                      {product.fssai}
+                    </td>
+                    <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
+                      {product.category}
+                    </td>
+                    <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
+                      {product.subCategory}
+                    </td>
+                    <td className="px-4 py-4 text-sm font-nunito text-gray-700">
+                      <div className="flex items-center gap-1.5">
+                        {/* Edit Icon */}
+                        <button
+                          onClick={() => handleEditClick(product)}
+                          className="p-1.5 text-[#1463ff] hover:text-blue-800 hover:bg-blue-50 rounded transition-colors duration-200 cursor-pointer"
+                          title="Edit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        {/* Delete Icon */}
+                        <button
+                          onClick={() => handleDeleteClick(product)}
+                          className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors duration-200 cursor-pointer"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -246,7 +266,7 @@ export default function ProductManagementPage() {
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            
+
             <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 const page = i + 1;
@@ -254,11 +274,10 @@ export default function ProductManagementPage() {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 text-sm font-nunito font-normal rounded-lg transition duration-200 cursor-pointer ${
-                      currentPage === page
-                        ? "bg-[#622581] text-white"
-                        : "text-gray-600 hover:bg-[#622581]/10 hover:text-[#622581]"
-                    }`}
+                    className={`w-8 h-8 text-sm font-nunito font-normal rounded-lg transition duration-200 cursor-pointer ${currentPage === page
+                      ? "bg-[#622581] text-white"
+                      : "text-gray-600 hover:bg-[#622581]/10 hover:text-[#622581]"
+                      }`}
                   >
                     {page}
                   </button>
@@ -269,11 +288,10 @@ export default function ProductManagementPage() {
                   <span className="text-gray-400">...</span>
                   <button
                     onClick={() => setCurrentPage(totalPages)}
-                    className={`w-8 h-8 text-sm font-nunito font-normal rounded-lg transition duration-200 cursor-pointer ${
-                      currentPage === totalPages
-                        ? "bg-[#622581] text-white"
-                        : "text-gray-600 hover:bg-[#622581]/10 hover:text-[#622581]"
-                    }`}
+                    className={`w-8 h-8 text-sm font-nunito font-normal rounded-lg transition duration-200 cursor-pointer ${currentPage === totalPages
+                      ? "bg-[#622581] text-white"
+                      : "text-gray-600 hover:bg-[#622581]/10 hover:text-[#622581]"
+                      }`}
                   >
                     {totalPages}
                   </button>
@@ -314,96 +332,96 @@ export default function ProductManagementPage() {
                   <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
                     Product Name
                   </label>
-                  <input 
-                    type="text" 
-                    placeholder="Enter Product Name" 
+                  <input
+                    type="text"
+                    placeholder="Enter Product Name"
                     value={editFormData.name}
                     onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition" 
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
                     Code
                   </label>
-                  <input 
-                    type="text" 
-                    placeholder="Enter Code" 
+                  <input
+                    type="text"
+                    placeholder="Enter Code"
                     value={editFormData.code}
                     onChange={(e) => setEditFormData({ ...editFormData, code: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition" 
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
                     UOM
                   </label>
-                  <input 
-                    type="text" 
-                    placeholder="Enter UOM" 
+                  <input
+                    type="text"
+                    placeholder="Enter UOM"
                     value={editFormData.uom}
                     onChange={(e) => setEditFormData({ ...editFormData, uom: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition" 
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
                     HSN Code
                   </label>
-                  <input 
-                    type="text" 
-                    placeholder="Enter HSN Code" 
+                  <input
+                    type="text"
+                    placeholder="Enter HSN Code"
                     value={editFormData.hsnCode}
                     onChange={(e) => setEditFormData({ ...editFormData, hsnCode: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition" 
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
                   />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
                     Description
                   </label>
-                  <textarea 
-                    placeholder="Enter Description" 
-                    rows={3} 
+                  <textarea
+                    placeholder="Enter Description"
+                    rows={3}
                     value={editFormData.description}
                     onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition resize-none" 
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition resize-none"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
                     FSSAI
                   </label>
-                  <input 
-                    type="text" 
-                    placeholder="Enter FSSAI" 
+                  <input
+                    type="text"
+                    placeholder="Enter FSSAI"
                     value={editFormData.fssai}
                     onChange={(e) => setEditFormData({ ...editFormData, fssai: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition" 
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
                     Category
                   </label>
-                  <input 
-                    type="text" 
-                    placeholder="Enter Category" 
+                  <input
+                    type="text"
+                    placeholder="Enter Category"
                     value={editFormData.category}
                     onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition" 
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
                     Sub-Category
                   </label>
-                  <input 
-                    type="text" 
-                    placeholder="Enter Sub-Category" 
+                  <input
+                    type="text"
+                    placeholder="Enter Sub-Category"
                     value={editFormData.subCategory}
                     onChange={(e) => setEditFormData({ ...editFormData, subCategory: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition" 
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
                   />
                 </div>
               </div>

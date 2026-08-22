@@ -20,39 +20,39 @@ type Shrinkage = {
 
 const initialData: Shrinkage[] = Array.from({ length: 4 }, (_, i) => ({
   id: i + 1,
-  stockName:     "Madhuvana",
-  qty:           "01",
-  mnfDate:       "01/03/2025",
-  expDate:       "12/12/2026",
-  receivedDate:  "12/12/2025",
-  stockValue:    "₹40,000",
-  auditedBy:     "M. Madhavan",
-  approvedBy:    "M. Ram",
+  stockName: "Madhuvana",
+  qty: "01",
+  mnfDate: "01/03/2025",
+  expDate: "12/12/2026",
+  receivedDate: "12/12/2025",
+  stockValue: "₹40,000",
+  auditedBy: "M. Madhavan",
+  approvedBy: "M. Ram",
   shrinkageType: "Shrinkage Type",
-  description:   "Description",
+  description: "Description",
 }));
 
 const editFields: { field: keyof Omit<Shrinkage, "id">; label: string }[] = [
-  { field: "stockName",     label: "Stock Name" },
-  { field: "qty",           label: "Quantity" },
-  { field: "mnfDate",       label: "Mnf Date" },
-  { field: "expDate",       label: "Exp Date" },
-  { field: "receivedDate",  label: "Received Date" },
-  { field: "stockValue",    label: "Stock Value" },
-  { field: "auditedBy",     label: "Audited By" },
-  { field: "approvedBy",    label: "Approved By" },
+  { field: "stockName", label: "Stock Name" },
+  { field: "qty", label: "Quantity" },
+  { field: "mnfDate", label: "Mnf Date" },
+  { field: "expDate", label: "Exp Date" },
+  { field: "receivedDate", label: "Received Date" },
+  { field: "stockValue", label: "Stock Value" },
+  { field: "auditedBy", label: "Audited By" },
+  { field: "approvedBy", label: "Approved By" },
   { field: "shrinkageType", label: "Shrinkage Type" },
-  { field: "description",   label: "Description" },
+  { field: "description", label: "Description" },
 ];
 
 export default function DamageShrinkagePage() {
   const router = useRouter();
 
-  const [rows, setRows]               = useState<Shrinkage[]>([]);
-  const [selected, setSelected]       = useState<Shrinkage | null>(null);
-  const [isEditOpen, setIsEditOpen]   = useState(false);
+  const [rows, setRows] = useState<Shrinkage[]>([]);
+  const [selected, setSelected] = useState<Shrinkage | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [editForm, setEditForm]       = useState<Shrinkage>({} as Shrinkage);
+  const [editForm, setEditForm] = useState<Shrinkage>({} as Shrinkage);
 
   // Load shrinkage/damage logs on mount
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function DamageShrinkagePage() {
       .then((data) => {
         if (Array.isArray(data)) {
           // Filter ledger logs that are damages/shrinkages
-          const shrinkages = data.filter((item: any) => 
+          const shrinkages = data.filter((item: any) =>
             item.movementType === "DAMAGE" || item.movementType === "SHRINKAGE" || item.movementType === "ADJUSTMENT"
           );
           const mapped: Shrinkage[] = shrinkages.map((item: any) => ({

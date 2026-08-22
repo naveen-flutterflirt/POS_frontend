@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "aws-amplify/auth";
-import { startTransition, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bell,
   ChevronDown,
@@ -64,11 +64,9 @@ const menuItems: MenuItem[] = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [activePath, setActivePath]       = useState(pathname);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [openGroups, setOpenGroups]       = useState<Record<string, boolean>>({});
-  const [mounted, setMounted]             = useState(false);
  
   const handleLogout = async () => {
     try {
@@ -78,11 +76,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       console.error("Error signing out: ", error);
     }
   };
- 
-  useEffect(() => {
-    setMounted(true);
-    startTransition(() => setActivePath(pathname));
-  }, [pathname]);
  
   useEffect(() => {
     const handleResize = () => {
@@ -120,7 +113,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className={`flex-1 space-y-1 py-4 ${isSidebarOpen ? "px-3" : "px-2"}`}>
           {menuItems.map((item) => {
             const isActive = item.path
-              ? activePath === item.path || activePath.startsWith(`${item.path}/`)
+              ? pathname === item.path || pathname.startsWith(`${item.path}/`)
               : false;
             const groupOpen = !!openGroups[item.name];
 
@@ -149,12 +142,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   {groupOpen && isSidebarOpen && (
                     <div className="ml-9 mt-1 space-y-1">
                       {item.subItems.map((sub) => {
-                        const isSubActive = activePath === sub.path;
+                        const isSubActive = pathname === sub.path;
                         return (
                           <Link
                             key={sub.name}
                             href={sub.path}
-                            onClick={() => setActivePath(sub.path)}
                             className={`group relative block rounded-lg px-3 py-2 font-nunito text-sm transition-all duration-200 ${isSubActive
                                 ? "bg-[#622581]/10 font-semibold text-[#622581]"
                                 : "text-gray-600 hover:bg-[#622581]/10 hover:text-[#622581]"
@@ -178,7 +170,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.name}
                 href={item.path!}
-                onClick={() => setActivePath(item.path!)}
                 title={!isSidebarOpen ? item.name : undefined}
                 className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200 ${!isSidebarOpen ? "justify-center" : ""
                   } ${isActive

@@ -3,22 +3,22 @@ import Image from "next/image";
 
 const roles = [
   {
-    href:    "/admin/login",
-    label:   "Admin Login",
-    desc:    "Manage your store, products & reports",
-    color:   "bg-[#622581] hover:bg-[#52206d]",
+    href: "/admin/login",
+    label: "Admin Login",
+    desc: "Manage your store, products & reports",
+    color: "bg-[#622581] hover:bg-[#52206d]",
   },
   {
-    href:    "/cashier/login",
-    label:   "Cashier Login",
-    desc:    "Process sales, returns & billing",
-    color:   "bg-[#1463ff] hover:bg-blue-700",
+    href: "/cashier/login",
+    label: "Cashier Login",
+    desc: "Process sales, returns & billing",
+    color: "bg-[#1463ff] hover:bg-blue-700",
   },
   {
-    href:    "/inventory/login",
-    label:   "Inventory Login",
-    desc:    "Track stock, manage inventory levels",
-    color:   "bg-[#0f9e6e] hover:bg-emerald-700",
+    href: "/inventory/login",
+    label: "Inventory Login",
+    desc: "Track stock, manage inventory levels",
+    color: "bg-[#0f9e6e] hover:bg-emerald-700",
   },
 ];
 
@@ -30,7 +30,7 @@ export default function RootPage() {
         {/* Logo + title */}
         <div className="mb-10 flex flex-col items-center gap-3 text-center">
           <div className="relative h-14 w-14">
-            <Image src="/Images/Logo.png" alt="FlutterFlirt POS" fill className="object-contain" />
+            <Image src="/Images/icon.svg" alt="FlutterFlirt POS" fill className="object-contain" />
           </div>
           <h1 className="font-poppins text-3xl font-bold text-gray-900">FlutterFlirt POS</h1>
           <p className="font-nunito text-sm text-gray-500">Select your role to continue</p>
