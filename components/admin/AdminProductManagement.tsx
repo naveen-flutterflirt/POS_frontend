@@ -5,19 +5,24 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useApi } from "@/context/ApiContext";
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, X, Eye } from "lucide-react";
 
 export default function AdminProductManagement() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const totalPages = 10;
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState("");
+  const [categories, setCategories] = useState<any[]>([]);
 
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { get, del } = useApi();
+  const { get, put, del } = useApi();
 
   // Load products list on mount
   useEffect(() => {
@@ -34,13 +39,19 @@ export default function AdminProductManagement() {
             hsnCode: p.hsnCode,
             description: p.description || "",
             category: p.category?.name || "Category",
-            subCategory: p.subCategory?.name || p.subcategoryId,
+            categoryId: p.categoryId,
+            subCategory: p.subcategory?.name || p.subcategoryId,
+            subcategoryId: p.subcategoryId,
           }));
           setProducts(mapped);
         }
       })
       .catch((error) => console.error("Error fetching products:", error))
       .finally(() => setIsLoading(false));
+      
+    get("/catalog/categories")
+      .then((data: any) => setCategories(data))
+      .catch((err) => console.error("Error fetching categories:", err));
   }, [get]);
 
   const [editFormData, setEditFormData] = useState({
@@ -52,6 +63,12 @@ export default function AdminProductManagement() {
     category: "",
     subCategory: "",
   });
+
+  // View handler
+  const handleViewClick = (product: any) => {
+    setSelectedProduct(product);
+    setIsViewModalOpen(true);
+  };
 
   // Delete handler
   const handleDeleteClick = (product: any) => {
@@ -86,16 +103,59 @@ export default function AdminProductManagement() {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const updatedProducts = products.map((p) =>
-      p.id === selectedProduct.id
-        ? { ...p, ...editFormData }
-        : p
-    );
-    setProducts(updatedProducts);
-    setIsEditModalOpen(false);
-    setSelectedProduct(null);
+    try {
+      await put(`/catalog/products/${selectedProduct.id}`, editFormData);
+      const updatedProducts = products.map((p) =>
+        p.id === selectedProduct.id
+          ? { ...p, ...editFormData }
+          : p
+      );
+      setProducts(updatedProducts);
+      setIsEditModalOpen(false);
+      setSelectedProduct(null);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      alert("Failed to update product.");
+    }
+  };
+
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch = 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      p.code.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategoryId ? p.categoryId?.toString() === selectedCategoryId : true;
+    const matchesSubcategory = selectedSubcategoryId ? p.subcategoryId?.toString() === selectedSubcategoryId : true;
+    
+    return matchesSearch && matchesCategory && matchesSubcategory;
+  });
+
+  const itemsPerPage = 10;
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("...");
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (currentPage < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
   };
 
   return (
@@ -130,10 +190,40 @@ export default function AdminProductManagement() {
 
       {/* Product Master Details Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-poppins font-medium text-gray-800">
+        <div className="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <h2 className="text-lg font-poppins font-medium text-gray-800 whitespace-nowrap">
             Product Master Details
           </h2>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <input
+              type="text"
+              placeholder="Search by name or code..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-nunito focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none"
+            />
+            <select
+              value={selectedCategoryId}
+              onChange={(e) => { setSelectedCategoryId(e.target.value); setSelectedSubcategoryId(""); }}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-nunito focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none bg-white"
+            >
+              <option value="">All Categories</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <select
+              value={selectedSubcategoryId}
+              onChange={(e) => setSelectedSubcategoryId(e.target.value)}
+              disabled={!selectedCategoryId}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-nunito focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none bg-white disabled:bg-gray-100 disabled:text-gray-400"
+            >
+              <option value="">All Sub-Categories</option>
+              {categories.find(c => c.id.toString() === selectedCategoryId)?.subcategories?.map((s: any) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Table - No Horizontal Scroll */}
@@ -177,15 +267,18 @@ export default function AdminProductManagement() {
                     </div>
                   </td>
                 </tr>
-              ) : products.length === 0 ? (
+              ) : currentProducts.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center font-nunito text-sm text-gray-400">
-                    No products found. Add one to get started.
+                    No products match your filters.
                   </td>
                 </tr>
               ) : (
-                products.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50 transition-colors duration-150">
+                currentProducts.map((product) => (
+                  <tr 
+                    key={product.id} 
+                    className="hover:bg-gray-50 transition-colors duration-150"
+                  >
                     {/* Product Name with Image */}
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
@@ -211,8 +304,8 @@ export default function AdminProductManagement() {
                     <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
                       {product.hsnCode}
                     </td>
-                    <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 max-w-[150px] truncate">
-                      {product.description}
+                    <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 max-w-[150px] truncate" title={product.description}>
+                      {product.description?.length > 30 ? product.description.substring(0, 30) + "..." : (product.description || "—")}
                     </td>
                     <td className="px-4 py-4 text-sm font-nunito font-normal text-gray-700 whitespace-nowrap">
                       {product.category}
@@ -222,6 +315,14 @@ export default function AdminProductManagement() {
                     </td>
                     <td className="px-4 py-4 text-sm font-nunito text-gray-700">
                       <div className="flex items-center gap-1.5">
+                        {/* View Icon */}
+                        <button
+                          onClick={() => handleViewClick(product)}
+                          className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors duration-200 cursor-pointer"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
                         {/* Edit Icon */}
                         <button
                           onClick={() => handleEditClick(product)}
@@ -250,12 +351,12 @@ export default function AdminProductManagement() {
         {/* Footer with Pagination */}
         <div className="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-sm font-nunito font-normal text-gray-500">
-            Showing {products.length} entries
+            Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} entries
           </div>
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage === 1}
               className="p-2 text-gray-500 hover:text-[#622581] hover:bg-[#622581]/10 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
@@ -263,39 +364,32 @@ export default function AdminProductManagement() {
             </button>
 
             <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1;
-                return (
+              {getPageNumbers().map((page, index) =>
+                page === "..." ? (
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="w-8 h-8 flex items-center justify-center text-sm font-nunito font-normal text-gray-400"
+                  >
+                    ...
+                  </span>
+                ) : (
                   <button
                     key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 text-sm font-nunito font-normal rounded-lg transition duration-200 cursor-pointer ${currentPage === page
-                      ? "bg-[#622581] text-white"
-                      : "text-gray-600 hover:bg-[#622581]/10 hover:text-[#622581]"
-                      }`}
+                    onClick={() => goToPage(page as number)}
+                    className={`w-8 h-8 text-sm font-nunito font-normal rounded-lg transition duration-200 cursor-pointer ${
+                      currentPage === page
+                        ? "bg-[#622581] text-white"
+                        : "text-gray-600 hover:bg-[#622581]/10 hover:text-[#622581]"
+                    }`}
                   >
                     {page}
                   </button>
-                );
-              })}
-              {totalPages > 5 && (
-                <>
-                  <span className="text-gray-400">...</span>
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    className={`w-8 h-8 text-sm font-nunito font-normal rounded-lg transition duration-200 cursor-pointer ${currentPage === totalPages
-                      ? "bg-[#622581] text-white"
-                      : "text-gray-600 hover:bg-[#622581]/10 hover:text-[#622581]"
-                      }`}
-                  >
-                    {totalPages}
-                  </button>
-                </>
+                )
               )}
             </div>
 
             <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              onClick={() => goToPage(currentPage + 1)}
               disabled={currentPage === totalPages}
               className="p-2 text-gray-500 hover:text-[#622581] hover:bg-[#622581]/10 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
@@ -304,6 +398,65 @@ export default function AdminProductManagement() {
           </div>
         </div>
       </div>
+
+      {/* View Product Modal */}
+      {isViewModalOpen && selectedProduct && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setIsViewModalOpen(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-poppins font-medium text-gray-800">
+                Product Details
+              </h2>
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition duration-200 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex flex-col md:flex-row items-start gap-8 mb-8 pb-8 border-b border-gray-100">
+              <div className="w-full md:w-48 h-48 relative rounded-xl overflow-hidden flex-shrink-0 bg-gray-50 border border-gray-200 p-2">
+                <Image src={selectedProduct.image} alt={selectedProduct.name} fill className="object-contain p-2" />
+              </div>
+              <div className="flex-1 mt-2">
+                <h3 className="text-3xl font-poppins font-semibold text-gray-800 mb-2">{selectedProduct.name}</h3>
+                <span className="inline-block mt-1 px-2.5 py-1 bg-[#622581]/10 text-[#622581] text-xs font-nunito font-semibold rounded-md">
+                  {selectedProduct.code}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs font-nunito font-medium text-gray-500 uppercase tracking-wider mb-1">Category</p>
+                  <p className="text-sm font-nunito font-medium text-gray-800">{selectedProduct.category}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-nunito font-medium text-gray-500 uppercase tracking-wider mb-1">Sub-Category</p>
+                  <p className="text-sm font-nunito font-medium text-gray-800">{selectedProduct.subCategory}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-nunito font-medium text-gray-500 uppercase tracking-wider mb-1">UOM</p>
+                  <p className="text-sm font-nunito font-medium text-gray-800">{selectedProduct.uom}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-nunito font-medium text-gray-500 uppercase tracking-wider mb-1">HSN Code</p>
+                  <p className="text-sm font-nunito font-medium text-gray-800">{selectedProduct.hsnCode || 'N/A'}</p>
+                </div>
+              </div>
+              
+              <div className="pt-2">
+                <p className="text-xs font-nunito font-medium text-gray-500 uppercase tracking-wider mb-1">Description</p>
+                <p className="text-sm font-nunito font-normal text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100 min-h-[60px]">
+                  {selectedProduct.description || 'No description provided.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Product Modal */}
       {isEditModalOpen && (
@@ -351,13 +504,21 @@ export default function AdminProductManagement() {
                   <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
                     UOM
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Enter UOM"
+                  <select
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition bg-white"
                     value={editFormData.uom}
                     onChange={(e) => setEditFormData({ ...editFormData, uom: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
-                  />
+                    required
+                  >
+                    <option value="">Select UOM</option>
+                    <option value="Kgs">Kgs</option>
+                    <option value="Gms">Gms</option>
+                    <option value="Liters">Liters</option>
+                    <option value="ml">ml</option>
+                    <option value="Pieces">Pieces</option>
+                    <option value="Boxes">Boxes</option>
+                    <option value="Packs">Packs</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
@@ -365,9 +526,13 @@ export default function AdminProductManagement() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter HSN Code"
+                    maxLength={8}
+                    placeholder="Enter 8-digit HSN Code"
                     value={editFormData.hsnCode}
-                    onChange={(e) => setEditFormData({ ...editFormData, hsnCode: e.target.value })}
+                    onChange={(e) => {
+                      const onlyNums = e.target.value.replace(/\D/g, "");
+                      setEditFormData({ ...editFormData, hsnCode: onlyNums });
+                    }}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
                   />
                 </div>

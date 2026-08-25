@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { startTransition, useEffect, useState } from "react";
+import { signOut } from "aws-amplify/auth";
 import {
   ArrowLeftRight,
   Bell,
@@ -33,9 +34,21 @@ const menuItems = [
 
 export default function InventoryLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [activePath, setActivePath] = useState(pathname);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error('Error signing out of Cognito:', err);
+    }
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    router.replace("/inventory/login");
+  };
 
   useEffect(() => {
     startTransition(() => setActivePath(pathname));
@@ -146,14 +159,7 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
 
           {/* Right: search + bell + profile */}
           <div className="flex items-center gap-1 sm:gap-4">
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-48 rounded-lg border border-gray-200 py-2 pl-9 pr-4 font-nunito text-sm outline-none transition focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/30 lg:w-64"
-              />
-            </div>
+
             <button
               type="button"
               className="relative rounded-lg p-2 text-gray-500 transition-colors hover:bg-[#622581]/10 hover:text-[#622581]"
@@ -176,7 +182,7 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
                   <button type="button" className="flex w-full items-center gap-3 px-4 py-2 font-nunito text-sm text-gray-700 transition-colors hover:bg-[#622581]/10 hover:text-[#622581]">
                     <Settings className="h-4 w-4" /> Settings
                   </button>
-                  <button type="button" className="flex w-full items-center gap-3 px-4 py-2 font-nunito text-sm text-gray-700 transition-colors hover:bg-red-50 hover:text-red-600">
+                  <button type="button" onClick={handleLogout} className="flex w-full items-center gap-3 px-4 py-2 font-nunito text-sm text-gray-700 transition-colors hover:bg-red-50 hover:text-red-600">
                     <LogOut className="h-4 w-4" /> Logout
                   </button>
                 </div>

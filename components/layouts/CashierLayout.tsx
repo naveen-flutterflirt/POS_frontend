@@ -25,6 +25,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { signOut } from 'aws-amplify/auth';
 
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/cashier/dashboard" },
@@ -60,7 +61,12 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
     return () => window.removeEventListener("resize", sync);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error('Error signing out of Cognito:', err);
+    }
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
     router.replace("/cashier/login");
@@ -143,10 +149,7 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
           </div>
 
           <div className="flex items-center gap-1 sm:gap-4">
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <input placeholder="Search" className="w-48 rounded-lg border border-gray-200 py-2 pl-9 pr-4 font-nunito text-sm outline-none transition focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/30 lg:w-64" />
-            </div>
+
             <button type="button" className="relative rounded-lg p-2 text-gray-500 transition-colors hover:bg-[#622581]/10 hover:text-[#622581]" aria-label="Notifications">
               <Bell className="h-5 w-5" />
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />

@@ -4,7 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 
+import { useApi } from "@/context/ApiContext";
+import { useCachedFetch } from "@/hooks/useCachedFetch";
+
 export default function CreateInventoryPage() {
+  const { post } = useApi();
+  const { data: rawStores } = useCachedFetch<any[]>("/store", { cacheKey: "cache:stores", staleTtl: 30_000 });
+  const stores = Array.isArray(rawStores) ? rawStores : [];
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -19,7 +25,22 @@ export default function CreateInventoryPage() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Inventory login data:", formData);
+    
+    post("/auth/signup", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        mobileNumber: formData.mobile,
+        role: "INVENTORY",
+        store: formData.store,
+      })
+      .then(() => {
+        window.location.href = "/admin/dashboard/inventory";
+      })
+      .catch((error) => {
+        console.error("Failed to create inventory user:", error);
+        alert("Failed to create inventory user. Check console for details.");
+      });
   };
 
   return (
@@ -47,11 +68,13 @@ export default function CreateInventoryPage() {
             <label className="font-nunito text-sm font-normal text-gray-800">Name<input required type="text" placeholder="Enter name" value={formData.name} onChange={(e) => updateField("name", e.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 font-nunito text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20" /></label>
             <label className="font-nunito text-sm font-normal text-gray-800">Email<input required type="email" placeholder="Enter email" value={formData.email} onChange={(e) => updateField("email", e.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 font-nunito text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20" /></label>
             <label className="font-nunito text-sm font-normal text-gray-800">Password<input required type="password" placeholder="Enter password" value={formData.password} onChange={(e) => updateField("password", e.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 font-nunito text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20" /></label>
-            <label className="font-nunito text-sm font-normal text-gray-800">Mobile<input required type="tel" placeholder="Enter mobile number" value={formData.mobile} onChange={(e) => updateField("mobile", e.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 font-nunito text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20" /></label>
+            <label className="font-nunito text-sm font-normal text-gray-800">Mobile<input required type="tel" pattern="[0-9]{10}" title="Must be exactly 10 digits" placeholder="Enter 10-digit mobile number" value={formData.mobile} onChange={(e) => updateField("mobile", e.target.value.replace(/\D/g, '').slice(0, 10))} className="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 font-nunito text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20" /></label>
             <label className="relative font-nunito text-sm font-normal text-gray-800">Store
               <select required value={formData.store} onChange={(e) => updateField("store", e.target.value)} className="mt-1.5 w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2.5 font-nunito text-sm text-gray-700 outline-none transition focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20">
                 <option value="">Select store</option>
-                <option value="Madhuvana Spices">Madhuvana Spices</option>
+                {stores.map((s: any) => (
+                  <option key={s.id} value={s.name}>{s.name}</option>
+                ))}
               </select>
               <ChevronDown className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 text-gray-400" />
             </label>

@@ -8,6 +8,13 @@ import { ArrowLeft, ChevronDown, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/context/ApiContext";
 
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
+  "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
+  "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+];
+
 export default function CreateStorePage() {
   const router = useRouter();
   const { post } = useApi();
@@ -47,6 +54,7 @@ export default function CreateStorePage() {
       name: formData.name,
       code: formData.code,
       address: fullAddress,
+      state: formData.state,
     })
       .then(() => {
         router.push("/admin/dashboard/store-management");
@@ -93,7 +101,16 @@ export default function CreateStorePage() {
               <label className="text-sm font-normal text-gray-800">Building Name/No.<input required placeholder="Enter building Name/Number" value={formData.building} onChange={(event) => updateField("building", event.target.value)} className={inputClassName} /></label>
               <label className="text-sm font-normal text-gray-800">Street Name/No.<input required placeholder="Enter Street Name/Number" value={formData.street} onChange={(event) => updateField("street", event.target.value)} className={inputClassName} /></label>
               <label className="text-sm font-normal text-gray-800">City<input required placeholder="Enter City name" value={formData.city} onChange={(event) => updateField("city", event.target.value)} className={inputClassName} /></label>
-              <label className="relative text-sm font-normal text-gray-800">State<select required value={formData.state} onChange={(event) => updateField("state", event.target.value)} className={`${inputClassName} appearance-none bg-white`}><option value="">Select State</option><option value="Karnataka">Karnataka</option><option value="Maharashtra">Maharashtra</option></select><ChevronDown className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 text-gray-400" /></label>
+              <label className="relative text-sm font-normal text-gray-800">
+                State
+                <select required value={formData.state} onChange={(event) => updateField("state", event.target.value)} className={`${inputClassName} appearance-none bg-white`}>
+                  <option value="">Select State</option>
+                  {INDIAN_STATES.map((state) => (
+                    <option key={state} value={state}>{state}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 text-gray-400" />
+              </label>
               <label className="relative text-sm font-normal text-gray-800">Country<select required value={formData.country} onChange={(event) => updateField("country", event.target.value)} className={`${inputClassName} appearance-none bg-white`}><option value="">Select Country</option><option value="India">India</option></select><ChevronDown className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 text-gray-400" /></label>
               <label className="text-sm font-normal text-gray-800">PIN<input required placeholder="Enter Pin" value={formData.pin} onChange={(event) => updateField("pin", event.target.value)} className={inputClassName} /></label>
             </div>

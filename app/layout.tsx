@@ -9,6 +9,7 @@ import "@fontsource/poppins/600.css";
 import "@fontsource/poppins/700.css";
 import "./globals.css";
 import { ApiProvider } from "@/context/ApiContext";
+import AmplifyConfigProvider from "./amplify-config";
 
 export const metadata: Metadata = {
   title: "POS — Place of Supply",
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-nunito">
-        <ApiProvider>{children}</ApiProvider>
+        <AmplifyConfigProvider>
+          <ApiProvider>{children}</ApiProvider>
+        </AmplifyConfigProvider>
       </body>
     </html>
   );

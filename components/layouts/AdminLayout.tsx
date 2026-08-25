@@ -23,14 +23,13 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import { signOut } from 'aws-amplify/auth';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  // Desktop sidebar collapse state
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Mobile sidebar state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -39,7 +38,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const router = useRouter();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error('Error signing out of Cognito:', err);
+    }
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
     router.replace("/admin/login");
@@ -90,15 +94,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 					h-dvh flex-col overflow-y-auto
 					border-r border-gray-200 bg-white
 					transition-all duration-200
-					lg:flex
-					${isSidebarCollapsed ? "w-20" : "w-64"}
+					lg:flex w-64
 				`}
       >
         {/* Logo */}
         <div
           className={`
 						flex items-center gap-3 px-6 py-5
-						${isSidebarCollapsed ? "justify-center px-3" : ""}
 					`}
         >
           <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
@@ -111,11 +113,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             />
           </div>
 
-          {!isSidebarCollapsed && (
-            <span className="whitespace-nowrap font-poppins text-lg font-semibold text-gray-800">
-              FlutterFlirt POS
-            </span>
-          )}
+          <span className="whitespace-nowrap font-poppins text-lg font-semibold text-gray-800">
+            FlutterFlirt POS
+          </span>
         </div>
 
         {/* Navigation */}
@@ -124,76 +124,78 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             href="/admin/dashboard"
             label="Dashboard"
             icon={<LayoutDashboard className="h-5 w-5 shrink-0" />}
-            collapsed={isSidebarCollapsed}
-          />
 
-          <SidebarDropdown
+          />
+          <SidebarLink
+            href="/admin/dashboard/categories"
             label="Category Management"
             icon={<Layers className="h-5 w-5 shrink-0" />}
-            collapsed={isSidebarCollapsed}
           />
-
           <SidebarLink
             href="/admin/dashboard/price-management"
             label="Price Management"
             icon={<Tag className="h-5 w-5 shrink-0" />}
-            collapsed={isSidebarCollapsed}
+
           />
 
           <SidebarLink
             href="/admin/dashboard/product-management"
             label="Product Management"
             icon={<Package className="h-5 w-5 shrink-0" />}
-            collapsed={isSidebarCollapsed}
+
           />
 
           <SidebarLink
             href="/admin/dashboard/payment-details"
             label="Payment Details"
             icon={<CreditCard className="h-5 w-5 shrink-0" />}
-            collapsed={isSidebarCollapsed}
+
           />
 
           <SidebarLink
             href="/admin/dashboard/cashier"
             label="Cashier"
             icon={<UserCog className="h-5 w-5 shrink-0" />}
-            collapsed={isSidebarCollapsed}
+
           />
 
           <SidebarLink
             href="/admin/dashboard/inventory"
             label="Inventory"
             icon={<Warehouse className="h-5 w-5 shrink-0" />}
-            collapsed={isSidebarCollapsed}
+
           />
 
           <SidebarLink
             href="/admin/dashboard/store-management"
             label="Store Management"
             icon={<Store className="h-5 w-5 shrink-0" />}
-            collapsed={isSidebarCollapsed}
+
           />
 
           <SidebarLink
             href="/admin/dashboard/print-management"
             label="Print Management"
             icon={<Printer className="h-5 w-5 shrink-0" />}
-            collapsed={isSidebarCollapsed}
+
           />
 
           <SidebarLink
             href="/admin/dashboard/tax-gst-management"
             label="Tax/GST Management"
             icon={<ReceiptText className="h-5 w-5 shrink-0" />}
-            collapsed={isSidebarCollapsed}
+
           />
 
           <SidebarDropdown
             label="Customer Management"
             icon={<Users className="h-5 w-5 shrink-0" />}
-            collapsed={isSidebarCollapsed}
-          />
+          >
+            <SidebarLink href="/admin/dashboard/customers" label="Customer Profiles" />
+            <SidebarLink href="/admin/dashboard/loyalty" label="Loyalty Programs" />
+            <SidebarLink href="/admin/dashboard/personalized-offers" label="Personalized Offers" />
+            <SidebarLink href="/admin/dashboard/purchase-history" label="Purchase History" />
+          </SidebarDropdown>
         </nav>
       </aside>
 
@@ -244,6 +246,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             href="/admin/dashboard"
             label="Dashboard"
             icon={<LayoutDashboard className="h-5 w-5" />}
+            onClick={closeMobileSidebar}
+          />
+
+          <MobileSidebarLink
+            href="/admin/dashboard/categories"
+            label="Category Management"
+            icon={<Layers className="h-5 w-5" />}
             onClick={closeMobileSidebar}
           />
 
@@ -320,7 +329,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         className={`
 					h-dvh min-w-0
 					transition-all duration-200
-					${isSidebarCollapsed ? "lg:ml-20" : "lg:ml-64"}
+					lg:ml-64
 				`}
       >
         {/* ==================== HEADER ==================== */}
@@ -332,33 +341,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 						px-3 py-3
 						transition-all duration-200
 						sm:px-6
-						${isSidebarCollapsed ? "lg:left-20" : "lg:left-64"}
+						lg:left-64
 						left-0
 					`}
         >
           <div className="flex items-center gap-3">
-            {/* Desktop collapse */}
-            <button
-              type="button"
-              onClick={() =>
-                setIsSidebarCollapsed(
-                  (current) => !current
-                )
-              }
-              className="hidden rounded-lg p-2 text-gray-600 transition-colors hover:bg-[#622581]/10 hover:text-[#622581] lg:block"
-              aria-label={
-                isSidebarCollapsed
-                  ? "Expand sidebar"
-                  : "Collapse sidebar"
-              }
-              aria-expanded={!isSidebarCollapsed}
-            >
-              {isSidebarCollapsed ? (
-                <ChevronRight className="h-5 w-5" />
-              ) : (
-                <ChevronLeft className="h-5 w-5" />
-              )}
-            </button>
 
             {/* Mobile menu */}
             <button
@@ -388,29 +375,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-4">
-            <div className="relative hidden md:block">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-              >
-                <path d="m21 21-4.34-4.34" />
-                <circle cx="11" cy="11" r="8" />
-              </svg>
 
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-48 rounded-lg border border-gray-200 py-2 pl-9 pr-4 font-nunito text-sm outline-none transition focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/30 lg:w-64"
-              />
-            </div>
 
             <button
               type="button"
@@ -482,12 +447,10 @@ function SidebarLink({
   href,
   label,
   icon,
-  collapsed,
 }: {
   href: string;
   label: string;
-  icon: React.ReactNode;
-  collapsed: boolean;
+  icon?: React.ReactNode;
 }) {
   const pathname = usePathname();
   // Exact match for dashboard root, otherwise startsWith to keep active on child pages
@@ -500,13 +463,12 @@ function SidebarLink({
 				group relative flex items-center gap-3
 				rounded-lg px-3 py-2.5
 				transition-all duration-200
-				${collapsed ? "justify-center" : ""}
 				${isActive
           ? "bg-[#622581]/10 text-[#622581]"
           : "text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581]"
         }
 			`}
-      title={collapsed ? label : undefined}
+      title={label}
     >
       <span
         className={`
@@ -516,13 +478,11 @@ function SidebarLink({
 				`}
       />
 
-      {icon}
+      {icon && icon}
 
-      {!collapsed && (
-        <span className="whitespace-nowrap font-nunito text-sm font-medium">
-          {label}
-        </span>
-      )}
+      <span className="whitespace-nowrap font-nunito text-sm font-medium">
+        {label}
+      </span>
     </Link>
   );
 }
@@ -534,11 +494,11 @@ function SidebarLink({
 function SidebarDropdown({
   label,
   icon,
-  collapsed,
+  children,
 }: {
   label: string;
   icon: React.ReactNode;
-  collapsed: boolean;
+  children?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -553,9 +513,9 @@ function SidebarDropdown({
 					text-gray-700
 					transition-all duration-200
 					hover:bg-[#622581]/10 hover:text-[#622581]
-					${collapsed ? "justify-center" : "justify-between"}
+					justify-between
 				`}
-        title={collapsed ? label : undefined}
+        title={label}
       >
         <span
           className="
@@ -569,26 +529,22 @@ function SidebarDropdown({
         <div className="flex items-center gap-3">
           {icon}
 
-          {!collapsed && (
-            <span className="font-nunito text-sm font-medium">
-              {label}
-            </span>
-          )}
+          <span className="font-nunito text-sm font-medium">
+            {label}
+          </span>
         </div>
 
-        {!collapsed && (
-          <ChevronDown
-            className={`
+        <ChevronDown
+          className={`
 							h-4 w-4 transition-transform duration-200
 							${open ? "rotate-180" : ""}
 						`}
-          />
-        )}
+        />
       </button>
 
-      {open && !collapsed && (
+      {open && (
         <div className="ml-11 mt-1 space-y-1">
-          {/* Add submenu items here */}
+          {children}
         </div>
       )}
     </div>

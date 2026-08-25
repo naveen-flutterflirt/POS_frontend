@@ -7,25 +7,40 @@ import { useApi } from "@/context/ApiContext";
 
 export default function AdminPriceManagement() {
   const [formData, setFormData] = useState({
+    categoryId: "",
+    subcategoryId: "",
     productId: "",
     basePrice: "",
     additionalCharges: "",
     tax: "",
     status: "",
   });
+  const [categories, setCategories] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [prices, setPrices] = useState<any[]>([]);
   const { get, post } = useApi();
 
   useEffect(() => {
-    // Load products and prices
-    Promise.all([get("/catalog/products"), get("/price")])
-      .then(([prods, prcs]) => {
+    // Load categories, products and prices
+    Promise.all([get("/catalog/categories"), get("/catalog/products"), get("/price")])
+      .then(([cats, prods, prcs]) => {
+        setCategories(cats || []);
         setProducts(prods || []);
         setPrices(prcs || []);
       })
       .catch((e) => console.error(e));
   }, [get]);
+
+  // Update subcategories when category changes
+  useEffect(() => {
+    if (formData.categoryId) {
+      const selectedCat = categories.find((c) => c.id.toString() === formData.categoryId);
+      setSubcategories(selectedCat?.subcategories || []);
+    } else {
+      setSubcategories([]);
+    }
+  }, [formData.categoryId, categories]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +99,41 @@ export default function AdminPriceManagement() {
           {/* Form - 2 Columns */}
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
+                  Category
+                </label>
+                <select 
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm text-gray-700 focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition bg-white"
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, subcategoryId: "", productId: "" })}
+                  required
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Sub Category */}
+              <div>
+                <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
+                  Sub Category
+                </label>
+                <select 
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm text-gray-700 focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition bg-white"
+                  value={formData.subcategoryId}
+                  onChange={(e) => setFormData({ ...formData, subcategoryId: e.target.value, productId: "" })}
+                >
+                  <option value="">Select Sub Category</option>
+                  {subcategories.map((sc) => (
+                    <option key={sc.id} value={sc.id}>{sc.name}</option>
+                  ))}
+                </select>
+              </div>
+
               {/* Product Name */}
               <div>
                 <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
@@ -96,7 +146,13 @@ export default function AdminPriceManagement() {
                   required
                 >
                   <option value="">Select Product</option>
-                  {products.map((p) => (
+                  {products
+                    .filter((p) => {
+                      if (formData.subcategoryId) return p.subcategoryId?.toString() === formData.subcategoryId;
+                      if (formData.categoryId) return p.categoryId?.toString() === formData.categoryId;
+                      return true;
+                    })
+                    .map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>

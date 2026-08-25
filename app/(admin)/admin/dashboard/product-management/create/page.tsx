@@ -7,19 +7,28 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/context/ApiContext";
 import { ArrowLeft, Upload, X } from "lucide-react";
+import { useEffect } from "react";
 
 export default function CreateProductPage() {
   const router = useRouter();
-  const { post } = useApi();
+  const { post, get } = useApi();
+  
+  const [categories, setCategories] = useState<any[]>([]);
+  
+  useEffect(() => {
+    get("/catalog/categories")
+      .then((data: any) => setCategories(data))
+      .catch((err) => console.error("Error fetching categories:", err));
+  }, [get]);
   
   const [formData, setFormData] = useState({
     productName: "",
     uom: "",
     description: "",
-    category: "",
+    categoryId: "",
     productCode: "",
     hsnCode: "",
-    subCategory: "",
+    subcategoryId: "",
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -44,7 +53,11 @@ export default function CreateProductPage() {
       if (imageFile) {
         const uploadData = new FormData();
         uploadData.append("file", imageFile);
-        const uploadRes = await post<{ url: string }>("/upload?folder=products", uploadData);
+        const uploadRes = await post<{ url: string }>("/upload?folder=products", uploadData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
         uploadedImageUrl = uploadRes.url;
       }
 
@@ -54,8 +67,8 @@ export default function CreateProductPage() {
         description: formData.description,
         uom: formData.uom,
         hsnCode: formData.hsnCode,
-        categoryId: 1,
-        subcategoryId: 1,
+        categoryId: Number(formData.categoryId),
+        subcategoryId: formData.subcategoryId ? Number(formData.subcategoryId) : undefined,
         imageUrl: uploadedImageUrl,
       });
       router.push("/admin/dashboard/product-management");
@@ -111,6 +124,44 @@ export default function CreateProductPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
               <div>
                 <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
+                  Category
+                </label>
+                <select
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm text-gray-700 focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition bg-white"
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, subcategoryId: "" })}
+                  required
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
+                  Sub-Category
+                </label>
+                <select
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm text-gray-700 focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition bg-white"
+                  value={formData.subcategoryId}
+                  onChange={(e) => setFormData({ ...formData, subcategoryId: e.target.value })}
+                  disabled={!formData.categoryId}
+                >
+                  <option value="">Select Sub-Category</option>
+                  {categories
+                    .find((c) => c.id.toString() === formData.categoryId)
+                    ?.subcategories?.map((sub: any) => (
+                      <option key={sub.id} value={sub.id}>
+                        {sub.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
                   Product Name
                 </label>
                 <input
@@ -135,15 +186,23 @@ export default function CreateProductPage() {
               </div>
               <div>
                 <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
-                  UOM (Kgs/gm, Liter/oz)
+                  UOM
                 </label>
-                <input
-                  type="text"
-                  placeholder="Enter UOM"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm text-gray-700 focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
+                <select
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm text-gray-700 focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition bg-white"
                   value={formData.uom}
                   onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
-                />
+                  required
+                >
+                  <option value="">Select UOM</option>
+                  <option value="Kgs">Kgs</option>
+                  <option value="Gms">Gms</option>
+                  <option value="Liters">Liters</option>
+                  <option value="ml">ml</option>
+                  <option value="Pieces">Pieces</option>
+                  <option value="Boxes">Boxes</option>
+                  <option value="Packs">Packs</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
@@ -151,10 +210,14 @@ export default function CreateProductPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Enter HSN Code"
+                  maxLength={8}
+                  placeholder="Enter 8-digit HSN Code"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm text-gray-700 focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
                   value={formData.hsnCode}
-                  onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })}
+                  onChange={(e) => {
+                    const onlyNums = e.target.value.replace(/\D/g, "");
+                    setFormData({ ...formData, hsnCode: onlyNums });
+                  }}
                 />
               </div>
               <div>
@@ -168,21 +231,6 @@ export default function CreateProductPage() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
-                  Sub-Category
-                </label>
-                <select
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm text-gray-700 focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition bg-white"
-                  value={formData.subCategory}
-                  onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
-                >
-                  <option value="">Select Sub-Category</option>
-                  <option value="masalas">Masalas</option>
-                  <option value="whole">Whole</option>
-                  <option value="ground">Ground</option>
-                </select>
               </div>
             </div>
 
