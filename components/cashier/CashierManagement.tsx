@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useCachedFetch } from "@/hooks/useCachedFetch";
 import { Edit, Trash2, X } from "lucide-react";
 
 type Cashier = {
@@ -32,30 +33,49 @@ const emptyCashier: Cashier = {
 };
 
 export default function CashierManagement() {
-	const [cashiers, setCashiers] = useState<Cashier[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
+	const { data: rawUsers, isLoading, isRefreshing } = useCachedFetch<any[]>(
+		"/users",
+		{ cacheKey: "cache:users", staleTtl: 30_000 }
+	);
 
-	useEffect(() => {
-		const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-		setIsLoading(true);
-		fetch(`${apiUrl}/users`)
-			.then((res) => res.json())
-			.then((data) => {
-				if (Array.isArray(data)) {
-					const mapped: Cashier[] = data.map((u: any) => ({
-						id: u.id,
-						name: u.name,
-						email: u.email,
-						password: u.password || "********",
-						mobile: u.mobileNumber || "",
-						store: "Madhuvana Spices",
-					}));
-					setCashiers(mapped);
-				}
-			})
-			.catch(console.error)
-			.finally(() => setIsLoading(false));
-	}, []);
+	console.log("🔥 RAW USERS:", rawUsers);
+	console.log("🔥 LOADING:", isLoading);
+	console.log("🔥 REFRESHING:", isRefreshing);
+
+	// Derived synchronously — no render delay (useMemo instead of useEffect)
+	const apiCashiers = useMemo<Cashier[]>(() => {
+		console.log("🟡 RAW USERS INSIDE MEMO:", rawUsers);
+
+		if (!Array.isArray(rawUsers)) {
+			console.log("❌ rawUsers is NOT an array");
+			return [];
+		}
+
+		const mapped = rawUsers.map((u: any) => ({
+			id: u.id,
+			name: u.name ?? "",
+			email: u.email ?? "",
+			password: u.password || "********",
+			mobile: u.mobileNumber ?? "",
+			store: "Madhuvana Spices",
+		}));
+
+		console.log("🟢 API CASHIERS:", mapped);
+
+		return mapped;
+	}, [rawUsers]);
+
+	// Local overrides for optimistic edit/delete (merge with api data)
+	const [localOverrides, setLocalOverrides] = useState<Record<number, Cashier | null>>({});
+	const cashiers = useMemo<Cashier[]>(() => {
+		const result = apiCashiers
+			.filter((c) => localOverrides[c.id] !== null)
+			.map((c) => localOverrides[c.id] ?? c);
+
+		console.log("🔵 FINAL CASHIERS:", result);
+
+		return result;
+	}, [apiCashiers, localOverrides]);
 	const [formData, setFormData] = useState(emptyCashier);
 	const [selectedCashier, setSelectedCashier] = useState<Cashier | null>(null);
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -69,20 +89,14 @@ export default function CashierManagement() {
 
 	const handleEdit = (event: React.FormEvent) => {
 		event.preventDefault();
-		setCashiers((currentCashiers) =>
-			currentCashiers.map((cashier) =>
-				cashier.id === formData.id ? formData : cashier,
-			),
-		);
+		setLocalOverrides(prev => ({ ...prev, [formData.id]: formData }));
 		setIsEditModalOpen(false);
 		setSelectedCashier(null);
 	};
 
 	const handleDelete = () => {
 		if (!selectedCashier) return;
-		setCashiers((currentCashiers) =>
-			currentCashiers.filter((cashier) => cashier.id !== selectedCashier.id),
-		);
+		setLocalOverrides(prev => ({ ...prev, [selectedCashier.id]: null }));
 		setIsDeleteModalOpen(false);
 		setSelectedCashier(null);
 	};
@@ -118,12 +132,19 @@ export default function CashierManagement() {
 			</div>
 
 			<div className="bg-white">
-				<div className="px-5 py-4 sm:px-7">
+				<div className="px-5 py-4 sm:px-7 flex items-center gap-3">
 					<h2 className="font-poppins text-base font-medium text-gray-800">
 						Cashiers Login Details
 					</h2>
+					{isRefreshing && (
+						<span className="flex items-center gap-1.5 rounded-full bg-[#622581]/10 px-2.5 py-0.5 font-nunito text-xs text-[#622581]">
+							<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#622581]" />
+							Refreshing
+						</span>
+					)}
 				</div>
 				<div className="scrollbar-none overflow-x-auto">
+
 					<table className="w-full min-w-[600px] border-collapse font-nunito text-sm">
 						<thead>
 							<tr className="border-y border-gray-200 bg-gray-50">
@@ -135,7 +156,7 @@ export default function CashierManagement() {
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-100">
-							{isLoading ? (
+							{cashiers.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="py-12 text-center">
 										<div className="flex flex-col items-center gap-3">
@@ -172,6 +193,7 @@ export default function CashierManagement() {
 								))
 							)}
 						</tbody>
+
 					</table>
 				</div>
 			</div>

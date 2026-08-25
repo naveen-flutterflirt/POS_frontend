@@ -23,17 +23,17 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-  { name: "Dashboard",                   icon: LayoutDashboard, path: "/inventory/dashboard" },
-  { name: "Stock Management",            icon: PackageSearch,   path: "/inventory/dashboard/stock-management" },
-  { name: "GRN",                         icon: ClipboardList,   path: "/inventory/dashboard/grn" },
-  { name: "Store To Store Transfer",     icon: ArrowLeftRight,  path: "/inventory/dashboard/store-transfer" },
-  { name: "Damage Shrinkage Management", icon: PackageX,        path: "/inventory/dashboard/damage-shrinkage" },
-  { name: "Vendor Management",           icon: Truck,           path: "/inventory/dashboard/vendor-management" },
+  { name: "Dashboard", icon: LayoutDashboard, path: "/inventory/dashboard" },
+  { name: "Stock Management", icon: PackageSearch, path: "/inventory/dashboard/stock-management" },
+  { name: "GRN", icon: ClipboardList, path: "/inventory/dashboard/grn" },
+  { name: "Store To Store Transfer", icon: ArrowLeftRight, path: "/inventory/dashboard/store-transfer" },
+  { name: "Damage Shrinkage Management", icon: PackageX, path: "/inventory/dashboard/damage-shrinkage" },
+  { name: "Vendor Management", icon: Truck, path: "/inventory/dashboard/vendor-management" },
 ];
 
 export default function InventoryLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [activePath, setActivePath]       = useState(pathname);
+  const [activePath, setActivePath] = useState(pathname);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -55,14 +55,13 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
 
       {/* ══════════ Sidebar ══════════ */}
       <aside
-        className={`scrollbar-none fixed inset-y-0 left-0 z-30 flex h-dvh shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-white transition-all duration-200 lg:sticky lg:top-0 lg:z-auto ${
-          isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0"
-        }`}
+        className={`scrollbar-none fixed inset-y-0 left-0 z-30 flex h-dvh shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-white transition-all duration-200 lg:sticky lg:top-0 lg:z-auto ${isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0"
+          }`}
       >
         {/* Logo */}
         <div className={`flex items-center gap-3 px-6 py-5 ${!isSidebarOpen ? "justify-center px-3" : ""}`}>
           <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
-            <Image src="/Images/Logo.png" alt="FlutterFlirt POS logo" fill className="object-contain" />
+            <Image src="/Images/icon.svg" alt="FlutterFlirt POS logo" fill className="object-contain" />
           </div>
           {isSidebarOpen && (
             <span className="whitespace-nowrap font-poppins text-lg font-semibold text-gray-800">
@@ -81,18 +80,15 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
                 href={path}
                 onClick={() => setActivePath(path)}
                 title={!isSidebarOpen ? name : undefined}
-                className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200 ${
-                  !isSidebarOpen ? "justify-center" : ""
-                } ${
-                  isActive
+                className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200 ${!isSidebarOpen ? "justify-center" : ""
+                  } ${isActive
                     ? "bg-[#622581]/10 text-[#622581]"
                     : "text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581]"
-                }`}
+                  }`}
               >
                 <span
-                  className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#622581] transition-opacity duration-200 ${
-                    isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                  }`}
+                  className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#622581] transition-opacity duration-200 ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    }`}
                 />
                 <Icon className="h-5 w-5 shrink-0 transition-colors duration-200" />
                 {isSidebarOpen && (
@@ -116,15 +112,13 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
 
       {/* ══════════ Main area ══════════ */}
       <div
-        className={`h-dvh min-w-0 transition-all duration-200 ${
-          isSidebarOpen ? "lg:ml-64" : "lg:ml-20"
-        }`}
+        className={`h-dvh min-w-0 transition-all duration-200 ${isSidebarOpen ? "lg:ml-64" : "lg:ml-20"
+          }`}
       >
         {/* Header */}
         <header
-          className={`fixed left-0 right-0 top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-3 py-3 transition-all duration-200 sm:px-6 ${
-            isSidebarOpen ? "lg:left-64" : "lg:left-20"
-          }`}
+          className={`fixed left-0 right-0 top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-3 py-3 transition-all duration-200 sm:px-6 ${isSidebarOpen ? "lg:left-64" : "lg:left-20"
+            }`}
         >
           {/* Left: toggle + avatar + greeting */}
           <div className="flex items-center gap-3">

@@ -5,7 +5,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, ChevronDown, Plus } from "lucide-react";
 
+import { useRouter } from "next/navigation";
+import { useApi } from "@/context/ApiContext";
+
 export default function CreateStorePage() {
+  const router = useRouter();
+  const { post } = useApi();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -32,7 +38,24 @@ export default function CreateStorePage() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Store Data:", formData);
+    setIsSubmitting(true);
+    
+    // Combine address fields into a single string
+    const fullAddress = `${formData.building}, ${formData.street}, ${formData.city}, ${formData.state}, ${formData.country} - ${formData.pin}`;
+
+    post("/store", {
+      name: formData.name,
+      code: formData.code,
+      address: fullAddress,
+    })
+      .then(() => {
+        router.push("/admin/dashboard/store-management");
+      })
+      .catch((error) => {
+        console.error("Failed to create store:", error);
+        alert("Failed to create store. Check console for details.");
+        setIsSubmitting(false);
+      });
   };
 
   const inputClassName = "mt-1.5 w-full rounded-lg border border-gray-300 px-2 py-2.5 text-sm font-normal text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20";
@@ -84,7 +107,9 @@ export default function CreateStorePage() {
             </div>
 
             <div className="mt-auto flex justify-end pt-4">
-              <button type="submit" className="min-w-[158px] rounded-lg bg-[#622581] px-8 py-2.5 font-poppins text-xl font-medium text-white transition-colors hover:bg-[#52206d]">Submit</button>
+              <button disabled={isSubmitting} type="submit" className="min-w-[158px] rounded-lg bg-[#622581] px-8 py-2.5 font-poppins text-xl font-medium text-white transition-colors hover:bg-[#52206d] disabled:opacity-50">
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </button>
             </div>
           </form>
         </div>

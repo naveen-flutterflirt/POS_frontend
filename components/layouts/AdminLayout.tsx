@@ -1,289 +1,642 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "aws-amplify/auth";
-import { useEffect, useState } from "react";
 import {
-  Bell,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  CreditCard,
-  Layers,
   LayoutDashboard,
-  LogOut,
-  Menu,
+  Layers,
+  Tag,
   Package,
+  CreditCard,
+  UserCog,
+  Warehouse,
+  Store,
   Printer,
   ReceiptText,
-  Search,
-  Settings,
-  Store,
-  Tag,
-  UserCog,
   Users,
-  Warehouse,
   X,
+  Settings,
+  LogOut,
 } from "lucide-react";
 
-type MenuItem =
-  | { name: string; icon: React.ElementType; path: string; subItems?: never }
-  | { name: string; icon: React.ElementType; path?: never; subItems: { name: string; path: string }[] };
+interface AdminLayoutProps {
+  children: React.ReactNode;
+}
 
-const menuItems: MenuItem[] = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
-  {
-    name: "Category Management", icon: Layers,
-    subItems: [
-      { name: "Categories", path: "/admin/dashboard/categories" },
-      { name: "Sub-Categories", path: "/admin/dashboard/sub-categories" },
-    ],
-  },
-  { name: "Price Management", icon: Tag, path: "/admin/dashboard/price-management" },
-  { name: "Product Management", icon: Package, path: "/admin/dashboard/product-management" },
-  { name: "Payment Details", icon: CreditCard, path: "/admin/dashboard/payment-details" },
-  { name: "Cashier", icon: UserCog, path: "/admin/dashboard/cashier" },
-  { name: "Inventory", icon: Warehouse, path: "/admin/dashboard/inventory" },
-  { name: "Store Management", icon: Store, path: "/admin/dashboard/store-management" },
-  { name: "Print Management", icon: Printer, path: "/admin/dashboard/print-management" },
-  { name: "Tax/GST Management", icon: ReceiptText, path: "/admin/dashboard/tax-gst-management" },
-  {
-    name: "Customer Management", icon: Users,
-    subItems: [
-      { name: "Customer Profiles", path: "/admin/dashboard/customer-profiles" },
-      { name: "Purchase History", path: "/admin/dashboard/purchase-history" },
-      { name: "Loyalty Programs", path: "/admin/dashboard/loyalty-programs" },
-      { name: "Coupons & Gift Cards", path: "/admin/dashboard/coupons-and-gift-cards" },
-      { name: "Personalized Offers", path: "/admin/dashboard/personalized-offers" },
-    ],
-  },
-];
+export default function AdminLayout({ children }: AdminLayoutProps) {
+  // Desktop sidebar collapse state
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Mobile sidebar state
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Profile dropdown state
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [openGroups, setOpenGroups]       = useState<Record<string, boolean>>({});
- 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      router.push("/admin/login");
-    } catch (error) {
-      console.error("Error signing out: ", error);
-    }
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    router.replace("/admin/login");
   };
- 
+
+  // Close mobile sidebar when navigating/resizing to desktop
   useEffect(() => {
     const handleResize = () => {
-      setIsSidebarOpen(window.innerWidth >= 1024);
+      if (window.innerWidth >= 1024) {
+        setIsMobileSidebarOpen(false);
+      }
     };
-    handleResize(); // set correct initial value
+
+    handleResize();
+
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
- 
-  const toggleGroup = (name: string) =>
-    setOpenGroups((prev) => ({ ...prev, [name]: !prev[name] }));
+
+  // Close mobile sidebar when Escape is pressed
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMobileSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  const closeMobileSidebar = () => {
+    setIsMobileSidebarOpen(false);
+  };
 
   return (
     <div className="h-dvh overflow-hidden bg-gray-50 font-nunito">
-
-      {/* ══════════ Sidebar ══════════ */}
+      {/* ==================== DESKTOP SIDEBAR ==================== */}
       <aside
-        className={`scrollbar-none fixed inset-y-0 left-0 z-30 flex h-dvh shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-white transition-all duration-200 lg:sticky lg:top-0 lg:z-auto ${isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0"
-          }`}
+        className={`
+					fixed inset-y-0 left-0 z-30 hidden
+					h-dvh flex-col overflow-y-auto
+					border-r border-gray-200 bg-white
+					transition-all duration-200
+					lg:flex
+					${isSidebarCollapsed ? "w-20" : "w-64"}
+				`}
       >
         {/* Logo */}
-        <div className={`flex items-center gap-3 px-6 py-5 ${!isSidebarOpen ? "justify-center px-3" : ""}`}>
+        <div
+          className={`
+						flex items-center gap-3 px-6 py-5
+						${isSidebarCollapsed ? "justify-center px-3" : ""}
+					`}
+        >
           <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
-            <Image src="/Images/Logo.png" alt="FlutterFlirt POS logo" fill className="object-contain" />
+            <Image
+              src="/Images/icon.svg"
+              alt="FlutterFlirt POS logo"
+              fill
+              sizes="40px"
+              className="object-contain"
+            />
           </div>
-          {isSidebarOpen && (
+
+          {!isSidebarCollapsed && (
             <span className="whitespace-nowrap font-poppins text-lg font-semibold text-gray-800">
               FlutterFlirt POS
             </span>
           )}
         </div>
 
-        {/* Nav */}
-        <nav className={`flex-1 space-y-1 py-4 ${isSidebarOpen ? "px-3" : "px-2"}`}>
-          {menuItems.map((item) => {
-            const isActive = item.path
-              ? pathname === item.path || pathname.startsWith(`${item.path}/`)
-              : false;
-            const groupOpen = !!openGroups[item.name];
+        {/* Navigation */}
+        <nav className="flex-1 space-y-1 px-3 py-4">
+          <SidebarLink
+            href="/admin/dashboard"
+            label="Dashboard"
+            icon={<LayoutDashboard className="h-5 w-5 shrink-0" />}
+            collapsed={isSidebarCollapsed}
+          />
 
-            if (item.subItems) {
-              return (
-                <div key={item.name}>
-                  <button
-                    type="button"
-                    onClick={() => toggleGroup(item.name)}
-                    title={!isSidebarOpen ? item.name : undefined}
-                    className={`group relative flex w-full items-center justify-between rounded-lg px-3 py-2.5 transition-all duration-200 ${!isSidebarOpen ? "justify-center" : ""
-                      } text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581]`}
-                  >
-                    <span className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#622581] opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-                    <div className="flex items-center gap-3">
-                      <item.icon className="h-5 w-5 shrink-0" />
-                      {isSidebarOpen && (
-                        <span className="font-nunito text-sm font-medium">{item.name}</span>
-                      )}
-                    </div>
-                    {isSidebarOpen && (
-                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${groupOpen ? "rotate-180" : ""}`} />
-                    )}
-                  </button>
+          <SidebarDropdown
+            label="Category Management"
+            icon={<Layers className="h-5 w-5 shrink-0" />}
+            collapsed={isSidebarCollapsed}
+          />
 
-                  {groupOpen && isSidebarOpen && (
-                    <div className="ml-9 mt-1 space-y-1">
-                      {item.subItems.map((sub) => {
-                        const isSubActive = pathname === sub.path;
-                        return (
-                          <Link
-                            key={sub.name}
-                            href={sub.path}
-                            className={`group relative block rounded-lg px-3 py-2 font-nunito text-sm transition-all duration-200 ${isSubActive
-                                ? "bg-[#622581]/10 font-semibold text-[#622581]"
-                                : "text-gray-600 hover:bg-[#622581]/10 hover:text-[#622581]"
-                              }`}
-                          >
-                            <span
-                              className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#622581] transition-opacity duration-200 ${isSubActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                                }`}
-                            />
-                            {sub.name}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            }
+          <SidebarLink
+            href="/admin/dashboard/price-management"
+            label="Price Management"
+            icon={<Tag className="h-5 w-5 shrink-0" />}
+            collapsed={isSidebarCollapsed}
+          />
 
-            return (
-              <Link
-                key={item.name}
-                href={item.path!}
-                title={!isSidebarOpen ? item.name : undefined}
-                className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200 ${!isSidebarOpen ? "justify-center" : ""
-                  } ${isActive
-                    ? "bg-[#622581]/10 text-[#622581]"
-                    : "text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581]"
-                  }`}
-              >
-                <span
-                  className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#622581] transition-opacity duration-200 ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                    }`}
-                />
-                <item.icon className="h-5 w-5 shrink-0 transition-colors duration-200" />
-                {isSidebarOpen && (
-                  <span className="font-nunito text-sm font-medium">{item.name}</span>
-                )}
-              </Link>
-            );
-          })}
+          <SidebarLink
+            href="/admin/dashboard/product-management"
+            label="Product Management"
+            icon={<Package className="h-5 w-5 shrink-0" />}
+            collapsed={isSidebarCollapsed}
+          />
+
+          <SidebarLink
+            href="/admin/dashboard/payment-details"
+            label="Payment Details"
+            icon={<CreditCard className="h-5 w-5 shrink-0" />}
+            collapsed={isSidebarCollapsed}
+          />
+
+          <SidebarLink
+            href="/admin/dashboard/cashier"
+            label="Cashier"
+            icon={<UserCog className="h-5 w-5 shrink-0" />}
+            collapsed={isSidebarCollapsed}
+          />
+
+          <SidebarLink
+            href="/admin/dashboard/inventory"
+            label="Inventory"
+            icon={<Warehouse className="h-5 w-5 shrink-0" />}
+            collapsed={isSidebarCollapsed}
+          />
+
+          <SidebarLink
+            href="/admin/dashboard/store-management"
+            label="Store Management"
+            icon={<Store className="h-5 w-5 shrink-0" />}
+            collapsed={isSidebarCollapsed}
+          />
+
+          <SidebarLink
+            href="/admin/dashboard/print-management"
+            label="Print Management"
+            icon={<Printer className="h-5 w-5 shrink-0" />}
+            collapsed={isSidebarCollapsed}
+          />
+
+          <SidebarLink
+            href="/admin/dashboard/tax-gst-management"
+            label="Tax/GST Management"
+            icon={<ReceiptText className="h-5 w-5 shrink-0" />}
+            collapsed={isSidebarCollapsed}
+          />
+
+          <SidebarDropdown
+            label="Customer Management"
+            icon={<Users className="h-5 w-5 shrink-0" />}
+            collapsed={isSidebarCollapsed}
+          />
+        </nav>
+      </aside>
+
+      {/* ==================== MOBILE SIDEBAR ==================== */}
+      <aside
+        className={`
+					fixed inset-y-0 left-0 z-40
+					flex h-dvh w-64 flex-col
+					overflow-y-auto border-r border-gray-200 bg-white
+					transition-transform duration-200
+					lg:hidden
+					${isMobileSidebarOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
+          }
+				`}
+      >
+        {/* Mobile Logo */}
+        <div className="flex items-center justify-between px-6 py-5">
+          <div className="flex items-center gap-3">
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
+              <Image
+                src="/Images/icon.svg"
+                alt="FlutterFlirt POS logo"
+                fill
+                sizes="40px"
+                className="object-contain"
+              />
+            </div>
+
+            <span className="whitespace-nowrap font-poppins text-lg font-semibold text-gray-800">
+              FlutterFlirt POS
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={closeMobileSidebar}
+            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+            aria-label="Close sidebar"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <nav className="flex-1 space-y-1 px-3 py-4">
+          <MobileSidebarLink
+            href="/admin/dashboard"
+            label="Dashboard"
+            icon={<LayoutDashboard className="h-5 w-5" />}
+            onClick={closeMobileSidebar}
+          />
+
+          <MobileSidebarLink
+            href="/admin/dashboard/price-management"
+            label="Price Management"
+            icon={<Tag className="h-5 w-5" />}
+            onClick={closeMobileSidebar}
+          />
+
+          <MobileSidebarLink
+            href="/admin/dashboard/product-management"
+            label="Product Management"
+            icon={<Package className="h-5 w-5" />}
+            onClick={closeMobileSidebar}
+          />
+
+          <MobileSidebarLink
+            href="/admin/dashboard/payment-details"
+            label="Payment Details"
+            icon={<CreditCard className="h-5 w-5" />}
+            onClick={closeMobileSidebar}
+          />
+
+          <MobileSidebarLink
+            href="/admin/dashboard/cashier"
+            label="Cashier"
+            icon={<UserCog className="h-5 w-5" />}
+            onClick={closeMobileSidebar}
+          />
+
+          <MobileSidebarLink
+            href="/admin/dashboard/inventory"
+            label="Inventory"
+            icon={<Warehouse className="h-5 w-5" />}
+            onClick={closeMobileSidebar}
+          />
+
+          <MobileSidebarLink
+            href="/admin/dashboard/store-management"
+            label="Store Management"
+            icon={<Store className="h-5 w-5" />}
+            onClick={closeMobileSidebar}
+          />
+
+          <MobileSidebarLink
+            href="/admin/dashboard/print-management"
+            label="Print Management"
+            icon={<Printer className="h-5 w-5" />}
+            onClick={closeMobileSidebar}
+          />
+
+          <MobileSidebarLink
+            href="/admin/dashboard/tax-gst-management"
+            label="Tax/GST Management"
+            icon={<ReceiptText className="h-5 w-5" />}
+            onClick={closeMobileSidebar}
+          />
         </nav>
       </aside>
 
       {/* Mobile overlay */}
-      {isSidebarOpen && (
+      {isMobileSidebarOpen && (
         <button
           type="button"
-          onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 z-20 bg-black/20 lg:hidden"
+          onClick={closeMobileSidebar}
+          className="fixed inset-0 z-30 bg-black/20 lg:hidden"
           aria-label="Close sidebar overlay"
         />
       )}
 
-      {/* ══════════ Main area ══════════ */}
+      {/* ==================== MAIN AREA ==================== */}
       <div
-        className={`h-dvh min-w-0 transition-all duration-200 ${isSidebarOpen ? "lg:ml-64" : "lg:ml-20"
-          }`}
+        className={`
+					h-dvh min-w-0
+					transition-all duration-200
+					${isSidebarCollapsed ? "lg:ml-20" : "lg:ml-64"}
+				`}
       >
-        {/* Header */}
+        {/* ==================== HEADER ==================== */}
         <header
-          className={`fixed left-0 right-0 top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-3 py-3 transition-all duration-200 sm:px-6 ${isSidebarOpen ? "lg:left-64" : "lg:left-20"
-            }`}
+          className={`
+						fixed right-0 top-0 z-20
+						flex h-16 items-center justify-between
+						border-b border-gray-200 bg-white
+						px-3 py-3
+						transition-all duration-200
+						sm:px-6
+						${isSidebarCollapsed ? "lg:left-20" : "lg:left-64"}
+						left-0
+					`}
         >
-          {/* Left: toggle + avatar + greeting */}
           <div className="flex items-center gap-3">
+            {/* Desktop collapse */}
             <button
               type="button"
-              onClick={() => setIsSidebarOpen((o) => !o)}
-              className="rounded-lg p-2 text-gray-600 transition-colors hover:bg-[#622581]/10 hover:text-[#622581]"
-              aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-              aria-expanded={isSidebarOpen}
+              onClick={() =>
+                setIsSidebarCollapsed(
+                  (current) => !current
+                )
+              }
+              className="hidden rounded-lg p-2 text-gray-600 transition-colors hover:bg-[#622581]/10 hover:text-[#622581] lg:block"
+              aria-label={
+                isSidebarCollapsed
+                  ? "Expand sidebar"
+                  : "Collapse sidebar"
+              }
+              aria-expanded={!isSidebarCollapsed}
             >
-              <span className="hidden lg:block">
-                {isSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-              </span>
-              <span className="lg:hidden">
-                {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </span>
+              {isSidebarCollapsed ? (
+                <ChevronRight className="h-5 w-5" />
+              ) : (
+                <ChevronLeft className="h-5 w-5" />
+              )}
             </button>
+
+            {/* Mobile menu */}
+            <button
+              type="button"
+              onClick={() =>
+                setIsMobileSidebarOpen(true)
+              }
+              className="rounded-lg p-2 text-gray-600 transition-colors hover:bg-[#622581]/10 hover:text-[#622581] lg:hidden"
+              aria-label="Open sidebar"
+            >
+              <Layers className="h-5 w-5" />
+            </button>
+
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
-              <Image src="/Images/Avatar.png" alt="Admin avatar" fill className="object-cover" />
+              <Image
+                src="/Images/Avatar.png"
+                alt="Admin avatar"
+                fill
+                sizes="40px"
+                className="object-cover"
+              />
             </div>
+
             <h1 className="hidden font-poppins text-xl font-semibold text-gray-800 sm:block">
               Welcome back!
             </h1>
           </div>
 
-          {/* Right: search + bell + profile */}
           <div className="flex items-center gap-1 sm:gap-4">
             <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              >
+                <path d="m21 21-4.34-4.34" />
+                <circle cx="11" cy="11" r="8" />
+              </svg>
+
               <input
                 type="text"
                 placeholder="Search"
                 className="w-48 rounded-lg border border-gray-200 py-2 pl-9 pr-4 font-nunito text-sm outline-none transition focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/30 lg:w-64"
               />
             </div>
+
             <button
               type="button"
               className="relative rounded-lg p-2 text-gray-500 transition-colors hover:bg-[#622581]/10 hover:text-[#622581]"
               aria-label="Notifications"
             >
-              <Bell className="h-5 w-5" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+              >
+                <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+                <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
+              </svg>
+
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
             </button>
- 
-            <button
-              type="button"
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="p-2 text-gray-500 hover:text-[#622581] hover:bg-[#622581]/10 rounded-lg transition-all duration-200 cursor-pointer"
-            >
-              <UserCog className="w-5 h-5" />
-            </button>
- 
-            {isProfileOpen && (
-              <div className="absolute right-4 top-14 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581] transition-colors duration-200 cursor-pointer">
-                  <Settings className="w-4 h-4" />
-                  Settings
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581] transition-colors duration-200 cursor-pointer">
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </button>
-              </div>
-            )}
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="cursor-pointer rounded-lg p-2 text-gray-500 transition-all duration-200 hover:bg-[#622581]/10 hover:text-[#622581]"
+                aria-label="User settings"
+              >
+                <UserCog className="h-5 w-5" />
+              </button>
+
+              {isProfileOpen && (
+                <div className="absolute right-0 top-12 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg z-20">
+                  <button className="flex w-full cursor-pointer items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors duration-200 hover:bg-[#622581]/10 hover:text-[#622581]">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full cursor-pointer items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors duration-200 hover:bg-[#622581]/10 hover:text-[#622581]"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
-        {/* Page content */}
+        {/* ==================== PAGE CONTENT ==================== */}
         <main className="scrollbar-none h-full min-w-0 overflow-y-auto px-3 pb-6 pt-20 sm:px-6">
           {children}
         </main>
       </div>
     </div>
+  );
+}
+
+/* ============================================================
+   DESKTOP SIDEBAR LINK
+============================================================ */
+
+function SidebarLink({
+  href,
+  label,
+  icon,
+  collapsed,
+}: {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  collapsed: boolean;
+}) {
+  const pathname = usePathname();
+  // Exact match for dashboard root, otherwise startsWith to keep active on child pages
+  const isActive = href === "/admin/dashboard" ? pathname === href : pathname.startsWith(href);
+
+  return (
+    <Link
+      href={href}
+      className={`
+				group relative flex items-center gap-3
+				rounded-lg px-3 py-2.5
+				transition-all duration-200
+				${collapsed ? "justify-center" : ""}
+				${isActive
+          ? "bg-[#622581]/10 text-[#622581]"
+          : "text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581]"
+        }
+			`}
+      title={collapsed ? label : undefined}
+    >
+      <span
+        className={`
+					absolute bottom-0 left-0 top-0 w-1 rounded-r-full
+					bg-[#622581]
+					${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
+				`}
+      />
+
+      {icon}
+
+      {!collapsed && (
+        <span className="whitespace-nowrap font-nunito text-sm font-medium">
+          {label}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+/* ============================================================
+   DESKTOP DROPDOWN
+============================================================ */
+
+function SidebarDropdown({
+  label,
+  icon,
+  collapsed,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  collapsed: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className={`
+					group relative flex w-full items-center
+					rounded-lg px-3 py-2.5
+					text-gray-700
+					transition-all duration-200
+					hover:bg-[#622581]/10 hover:text-[#622581]
+					${collapsed ? "justify-center" : "justify-between"}
+				`}
+        title={collapsed ? label : undefined}
+      >
+        <span
+          className="
+						absolute bottom-0 left-0 top-0 w-1
+						rounded-r-full bg-[#622581]
+						opacity-0 transition-opacity
+						group-hover:opacity-100
+					"
+        />
+
+        <div className="flex items-center gap-3">
+          {icon}
+
+          {!collapsed && (
+            <span className="font-nunito text-sm font-medium">
+              {label}
+            </span>
+          )}
+        </div>
+
+        {!collapsed && (
+          <ChevronDown
+            className={`
+							h-4 w-4 transition-transform duration-200
+							${open ? "rotate-180" : ""}
+						`}
+          />
+        )}
+      </button>
+
+      {open && !collapsed && (
+        <div className="ml-11 mt-1 space-y-1">
+          {/* Add submenu items here */}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   MOBILE SIDEBAR LINK
+============================================================ */
+
+function MobileSidebarLink({
+  href,
+  label,
+  icon,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+}) {
+  const pathname = usePathname();
+  const isActive = href === "/admin/dashboard" ? pathname === href : pathname.startsWith(href);
+
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`
+        group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200
+        ${isActive
+          ? "bg-[#622581]/10 text-[#622581]"
+          : "text-gray-700 hover:bg-[#622581]/10 hover:text-[#622581]"
+        }
+      `}
+    >
+      <span
+        className={`
+          absolute bottom-0 left-0 top-0 w-1 rounded-r-full bg-[#622581] transition-opacity
+          ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
+        `}
+      />
+
+      {icon}
+
+      <span className="font-nunito text-sm font-medium">
+        {label}
+      </span>
+    </Link>
   );
 }

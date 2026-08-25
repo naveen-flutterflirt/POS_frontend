@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, ChevronDown } from "lucide-react";
+import { useApi } from "@/context/ApiContext";
 
 export default function CreateCashierPage() {
+  const { post } = useApi();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -19,23 +21,20 @@ export default function CreateCashierPage() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-    fetch(`${apiUrl}/auth/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    
+    post("/auth/signup", {
         name: formData.name,
         email: formData.email,
         password: formData.password,
         mobileNumber: formData.mobile,
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to create cashier");
+      })
+      .then(() => {
         window.location.href = "/admin/dashboard/cashier";
       })
-      .catch(console.error);
+      .catch((error) => {
+        console.error("Failed to create cashier:", error);
+        alert("Failed to create cashier. Check console for details.");
+      });
   };
 
   return (

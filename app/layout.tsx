@@ -8,7 +8,7 @@ import "@fontsource/poppins/500.css";
 import "@fontsource/poppins/600.css";
 import "@fontsource/poppins/700.css";
 import "./globals.css";
-import AmplifyConfigProvider from "./amplify-config";
+import { ApiProvider } from "@/context/ApiContext";
 
 export const metadata: Metadata = {
   title: "POS — Place of Supply",
@@ -21,10 +21,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="font-nunito">
-        {/* AmplifyConfigProvider is a 'use client' component — configures Amplify only on the client */}
-        <AmplifyConfigProvider>{children}</AmplifyConfigProvider>
+        <ApiProvider>{children}</ApiProvider>
       </body>
     </html>
   );

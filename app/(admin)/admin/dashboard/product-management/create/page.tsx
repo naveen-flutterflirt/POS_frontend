@@ -4,9 +4,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useApi } from "@/context/ApiContext";
 import { ArrowLeft, Upload, X } from "lucide-react";
 
 export default function CreateProductPage() {
+  const router = useRouter();
+  const { post } = useApi();
+  
   const [formData, setFormData] = useState({
     productName: "",
     uom: "",
@@ -14,14 +19,15 @@ export default function CreateProductPage() {
     category: "",
     productCode: "",
     hsnCode: "",
-    fssai: "",
     subCategory: "",
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -30,29 +36,32 @@ export default function CreateProductPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    try {
+      let uploadedImageUrl: string | undefined = undefined;
 
-    fetch(`${apiUrl}/catalog/products`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      if (imageFile) {
+        const uploadData = new FormData();
+        uploadData.append("file", imageFile);
+        const uploadRes = await post<{ url: string }>("/upload?folder=products", uploadData);
+        uploadedImageUrl = uploadRes.url;
+      }
+
+      await post("/catalog/products", {
         code: formData.productCode,
         name: formData.productName,
         description: formData.description,
         uom: formData.uom,
         hsnCode: formData.hsnCode,
-        categoryId: "CAT_DEFAULT",
-        subcategoryId: formData.subCategory || "SUBCAT_DEFAULT",
-        fssaiNumber: formData.fssai,
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to create product");
-        window.location.href = "/admin/dashboard/product-management";
-      })
-      .catch(console.error);
+        categoryId: 1,
+        subcategoryId: 1,
+        imageUrl: uploadedImageUrl,
+      });
+      router.push("/admin/dashboard/product-management");
+    } catch (error) {
+      console.error("Failed to create product:", error);
+    }
   };
 
   return (
@@ -158,18 +167,6 @@ export default function CreateProductPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm text-gray-700 focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition resize-none"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-nunito font-medium text-gray-700 mb-1.5">
-                  FSSAI Number
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter FSSAI Number"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg font-nunito font-normal text-sm text-gray-700 focus:ring-2 focus:ring-[#622581]/30 focus:border-[#622581] outline-none transition"
-                  value={formData.fssai}
-                  onChange={(e) => setFormData({ ...formData, fssai: e.target.value })}
                 />
               </div>
               <div>
