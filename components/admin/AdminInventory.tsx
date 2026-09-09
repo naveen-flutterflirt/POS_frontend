@@ -27,7 +27,7 @@ const emptyInventory: InventoryLogin = {
 };
 
 export default function AdminInventory() {
-	const { put } = useApi();
+	const { put, del } = useApi();
 	const { data: rawUsers, isLoading, isRefreshing } = useCachedFetch<any[]>(
 		"/users?role=INVENTORY",
 		{ cacheKey: "cache:users:inventory", staleTtl: 30_000 }
@@ -40,7 +40,7 @@ export default function AdminInventory() {
 			id: u.id,
 			name: u.name ?? "",
 			email: u.email ?? "",
-			password: u.password || "********",
+			password: "", // Do not load hash
 			mobile: u.mobileNumber ?? "",
 			store: u.store ?? "Madhuvana Spices",
 			posAccess: u.posAccess ?? false,
@@ -60,7 +60,7 @@ export default function AdminInventory() {
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
-	const [editFormData, setEditFormData] = useState<InventoryLogin>(emptyInventory);
+	const [formData, setFormData] = useState<InventoryLogin>(emptyInventory);
 
 	const handleToggleAccess = async (e: React.MouseEvent, inventory: InventoryLogin) => {
 		e.stopPropagation();
@@ -84,26 +84,48 @@ export default function AdminInventory() {
 
 	const handleEditClick = (inventory: InventoryLogin) => {
 		setSelectedInventory(inventory);
-		setEditFormData(inventory);
+		setFormData(inventory);
 		setIsEditModalOpen(true);
 	};
 
-	const handleEditSubmit = (event: React.FormEvent) => {
+	const handleEdit = async (event: React.FormEvent) => {
 		event.preventDefault();
-		setLocalOverrides(prev => ({ ...prev, [editFormData.id]: editFormData }));
-		setIsEditModalOpen(false);
-		setSelectedInventory(null);
+		try {
+			const payload = { ...formData };
+			if (!payload.password) {
+				delete (payload as any).password;
+			}
+			await put(`/users/${formData.id}`, payload);
+			setLocalOverrides(prev => ({ ...prev, [formData.id]: formData }));
+			setIsEditModalOpen(false);
+			setSelectedInventory(null);
+		} catch (error) {
+			console.error("Failed to update inventory user:", error);
+			alert("Failed to update user. Please try again.");
+		}
 	};
 
-	const handleDeleteConfirm = () => {
+	const handleDeleteConfirm = async () => {
 		if (!selectedInventory) return;
-		setLocalOverrides(prev => ({ ...prev, [selectedInventory.id]: null }));
-		setIsDeleteModalOpen(false);
-		setSelectedInventory(null);
+		try {
+			await del(`/users/${selectedInventory.id}`);
+			setLocalOverrides(prev => ({ ...prev, [selectedInventory.id]: null }));
+			setIsDeleteModalOpen(false);
+			setSelectedInventory(null);
+		} catch (error: any) {
+			if (error.response && error.response.status === 404) {
+				setLocalOverrides(prev => ({ ...prev, [selectedInventory.id]: null }));
+				setIsDeleteModalOpen(false);
+				setSelectedInventory(null);
+			} else {
+				console.error("Failed to delete inventory user:", error);
+				alert("Failed to delete user. Please try again.");
+			}
+		}
 	};
 
 	const updateField = (field: keyof InventoryLogin, value: string) => {
-		setEditFormData((currentData) => ({ ...currentData, [field]: value }));
+		setFormData((currentData) => ({ ...currentData, [field]: value }));
 	};
 
 	return (
@@ -190,7 +212,7 @@ export default function AdminInventory() {
 								<X className="h-5 w-5" />
 							</button>
 						</div>
-						<form onSubmit={handleEditSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<form onSubmit={handleEdit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							{([
 								["name", "Name"],
 								["email", "Email"],
@@ -199,12 +221,13 @@ export default function AdminInventory() {
 								["store", "Store"],
 							] as [keyof InventoryLogin, string][]).map(([field, label]) => (
 								<label key={field} className="text-sm font-normal text-gray-600">
-									{label}
+									{label} {field === "password" && <span className="text-xs text-gray-400">(leave blank to keep current)</span>}
 									<input
-										required
-										value={editFormData[field] as string}
+										required={field !== "password"}
+										type={field === "password" ? "password" : "text"}
+										value={formData[field] as string}
 										onChange={(event) => updateField(field, event.target.value)}
-										className="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-normal text-gray-700 outline-none focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20"
+										className="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-normal text-gray-700 outline-none transition focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20"
 									/>
 								</label>
 							))}
@@ -260,22 +283,6 @@ export default function AdminInventory() {
 								<span className={`inline-block mt-1 px-2.5 py-1 text-xs font-nunito font-semibold rounded-md ${selectedInventory.posAccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
 									{selectedInventory.posAccess ? "Granted" : "Revoked"}
 								</span>
-							</div>
-							<div className="pt-2 border-t border-gray-100">
-								<p className="text-xs font-nunito text-gray-500 uppercase tracking-wider mb-2">Security</p>
-								<div className="flex items-center gap-3 bg-gray-50 px-3 py-2.5 rounded-lg border border-gray-200">
-									<p className="text-sm font-nunito font-medium text-gray-800 tracking-widest flex-1">
-										{showPassword ? selectedInventory.password : "••••••••"}
-									</p>
-									<button
-										type="button"
-										onClick={() => setShowPassword(!showPassword)}
-										className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
-										title={showPassword ? "Hide Password" : "Show Password"}
-									>
-										{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-									</button>
-								</div>
 							</div>
 						</div>
 					</div>

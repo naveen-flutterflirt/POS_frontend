@@ -37,7 +37,7 @@ const emptyCashier: Cashier = {
 };
 
 export default function CashierManagement() {
-	const { put } = useApi();
+	const { put, del } = useApi();
 	const { data: rawUsers, isLoading, isRefreshing } = useCachedFetch<any[]>(
 		"/users?role=CASHIER",
 		{ cacheKey: "cache:users:cashier", staleTtl: 30_000 }
@@ -60,7 +60,7 @@ export default function CashierManagement() {
 			id: u.id,
 			name: u.name ?? "",
 			email: u.email ?? "",
-			password: u.password || "********",
+			password: "", // Do not load hash
 			mobile: u.mobileNumber ?? "",
 			store: "Madhuvana Spices",
 			posAccess: u.posAccess ?? false,
@@ -115,18 +115,41 @@ export default function CashierManagement() {
 		setIsEditModalOpen(true);
 	};
 
-	const handleEdit = (event: React.FormEvent) => {
+	const handleEdit = async (event: React.FormEvent) => {
 		event.preventDefault();
-		setLocalOverrides(prev => ({ ...prev, [formData.id]: formData }));
-		setIsEditModalOpen(false);
-		setSelectedCashier(null);
+		try {
+			const payload = { ...formData };
+			if (!payload.password) {
+				delete (payload as any).password;
+			}
+			await put(`/users/${formData.id}`, payload);
+			setLocalOverrides(prev => ({ ...prev, [formData.id]: formData }));
+			setIsEditModalOpen(false);
+			setSelectedCashier(null);
+		} catch (error) {
+			console.error("Failed to update cashier:", error);
+			alert("Failed to update cashier. Please try again.");
+		}
 	};
 
-	const handleDelete = () => {
+	const handleDelete = async () => {
 		if (!selectedCashier) return;
-		setLocalOverrides(prev => ({ ...prev, [selectedCashier.id]: null }));
-		setIsDeleteModalOpen(false);
-		setSelectedCashier(null);
+		try {
+			await del(`/users/${selectedCashier.id}`);
+			setLocalOverrides(prev => ({ ...prev, [selectedCashier.id]: null }));
+			setIsDeleteModalOpen(false);
+			setSelectedCashier(null);
+		} catch (error: any) {
+			if (error.response && error.response.status === 404) {
+				// Already deleted on server, just remove from UI
+				setLocalOverrides(prev => ({ ...prev, [selectedCashier.id]: null }));
+				setIsDeleteModalOpen(false);
+				setSelectedCashier(null);
+			} else {
+				console.error("Failed to delete cashier:", error);
+				alert("Failed to delete cashier. Please try again.");
+			}
+		}
 	};
 
 	const updateField = (field: keyof Cashier, value: string) => {
@@ -265,9 +288,9 @@ export default function CashierManagement() {
 								["store", "Store", "Enter Store"],
 							] as [keyof Cashier, string, string][]).map(([field, label, placeholder]) => (
 								<label key={field} className="text-sm font-normal text-gray-600">
-									{label}
+									{label} {field === "password" && <span className="text-xs text-gray-400">(leave blank to keep current)</span>}
 									<input
-										required
+										required={field !== "password"}
 										type={field === "password" ? "password" : "text"}
 										value={formData[field] as string}
 										placeholder={placeholder}
@@ -349,22 +372,6 @@ export default function CashierManagement() {
 								<span className={`inline-block mt-1 px-2.5 py-1 text-xs font-nunito font-semibold rounded-md ${selectedCashier.posAccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
 									{selectedCashier.posAccess ? "Granted" : "Revoked"}
 								</span>
-							</div>
-							<div className="pt-2 border-t border-gray-100">
-								<p className="text-xs font-nunito text-gray-500 uppercase tracking-wider mb-2">Security</p>
-								<div className="flex items-center gap-3 bg-gray-50 px-3 py-2.5 rounded-lg border border-gray-200">
-									<p className="text-sm font-nunito font-medium text-gray-800 tracking-widest flex-1">
-										{showPassword ? selectedCashier.password : "••••••••"}
-									</p>
-									<button
-										type="button"
-										onClick={() => setShowPassword(!showPassword)}
-										className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
-										title={showPassword ? "Hide Password" : "Show Password"}
-									>
-										{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-									</button>
-								</div>
 							</div>
 						</div>
 					</div>

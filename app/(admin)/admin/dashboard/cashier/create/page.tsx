@@ -75,7 +75,7 @@ export default function CreateCashierPage() {
             </label>
             <label className="font-nunito text-sm font-normal text-gray-800">
               Password
-              <input required type="password" placeholder="Enter password" value={formData.password} onChange={(e) => updateField("password", e.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 font-nunito text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20" />
+              <input required type="text" placeholder="Enter password" value={formData.password} onChange={(e) => updateField("password", e.target.value)} className="mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 font-nunito text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-[#622581] focus:ring-2 focus:ring-[#622581]/20" />
             </label>
             <label className="font-nunito text-sm font-normal text-gray-800">
               Mobile

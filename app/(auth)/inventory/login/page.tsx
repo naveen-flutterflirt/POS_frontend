@@ -23,8 +23,13 @@ export default function InventoryLoginPage() {
     try {
       const response = await post("/auth/login", { email, password });
       
-      // Assume token comes back in response.access_token
       if (response && response.access_token) {
+        if (!response.user?.posAccess) {
+          setError("You do not have access to login. Please contact admin.");
+          setLoading(false);
+          return;
+        }
+
         localStorage.setItem("access_token", response.access_token);
         if (response.user) {
           localStorage.setItem("user", JSON.stringify(response.user));
