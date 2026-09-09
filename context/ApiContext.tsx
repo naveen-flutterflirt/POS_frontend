@@ -90,7 +90,14 @@ export function ApiProvider({ children }: { children: ReactNode }) {
         }
 
         if (error.response?.status === 401 && typeof window !== "undefined") {
-          window.location.href = "/admin/login";
+          const firstSegment = window.location.pathname.split("/")[1];
+          const loginRoute =
+            firstSegment === "cashier"
+              ? "/cashier/login"
+              : firstSegment === "inventory"
+                ? "/inventory/login"
+                : "/admin/login";
+          window.location.href = loginRoute;
         }
 
         return Promise.reject(error);
