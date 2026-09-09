@@ -15,9 +15,9 @@ All changes tracked for `POS_frontend` only.
 
 #### `app/amplify-config.ts` — [NEW]
 - Configures AWS Amplify with Cognito credentials.
-- **User Pool ID**: `ap-south-1_5d3RCaS6A`
-- **App Client ID**: `4613o9ialn0hfn4c9pofr6s7tr`
-
+- Cognito configuration is supplied via environment variables:
+  - `NEXT_PUBLIC_COGNITO_USER_POOL_ID`
+  - `NEXT_PUBLIC_COGNITO_CLIENT_ID`
 #### `app/layout.tsx` — [MODIFIED]
 - Imported `./amplify-config` so Amplify is initialized globally across all pages.
 
