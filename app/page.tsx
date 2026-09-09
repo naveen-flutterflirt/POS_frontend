@@ -1,87 +1,59 @@
-export default function Home() {
+import Link from "next/link";
+import Image from "next/image";
+
+const roles = [
+  {
+    href: "/admin/login",
+    label: "Admin Login",
+    desc: "Manage your store, products & reports",
+    color: "bg-[#622581] hover:bg-[#52206d]",
+  },
+  {
+    href: "/cashier/login",
+    label: "Cashier Login",
+    desc: "Process sales, returns & billing",
+    color: "bg-[#1463ff] hover:bg-blue-700",
+  },
+  {
+    href: "/inventory/login",
+    label: "Inventory Login",
+    desc: "Track stock, manage inventory levels",
+    color: "bg-[#0f9e6e] hover:bg-emerald-700",
+  },
+];
+
+export default function RootPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation Bar */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">CRM Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Welcome, Admin</span>
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-              A
-            </div>
-          </div>
-        </div>
-      </header>
+    <main className="flex min-h-screen items-center justify-center bg-[#f8f9fb] px-4 py-10">
+      <div className="w-full max-w-4xl">
 
-      {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Stats Cards Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
-            <p className="text-sm text-gray-500">Total Users</p>
-            <p className="text-3xl font-bold text-gray-900">1,234</p>
+        {/* Logo + title */}
+        <div className="mb-10 flex flex-col items-center gap-3 text-center">
+          <div className="relative h-14 w-14">
+            <Image src="/Images/icon.svg" alt="FlutterFlirt POS" fill className="object-contain" />
           </div>
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
-            <p className="text-sm text-gray-500">Revenue</p>
-            <p className="text-3xl font-bold text-gray-900">$45,678</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
-            <p className="text-sm text-gray-500">Active Projects</p>
-            <p className="text-3xl font-bold text-gray-900">23</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
-            <p className="text-sm text-gray-500">Pending Tasks</p>
-            <p className="text-3xl font-bold text-gray-900">12</p>
-          </div>
+          <h1 className="font-poppins text-3xl font-bold text-gray-900">FlutterFlirt POS</h1>
+          <p className="font-nunito text-sm text-gray-500">Select your role to continue</p>
         </div>
 
-        {/* Recent Activity Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white rounded-lg shadow p-6 border border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 border-b border-gray-100 pb-4">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">New user registered</p>
-                  <p className="text-xs text-gray-500">2 minutes ago</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 border-b border-gray-100 pb-4">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Project "Website Redesign" updated</p>
-                  <p className="text-xs text-gray-500">1 hour ago</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Payment received from Client X</p>
-                  <p className="text-xs text-gray-500">3 hours ago</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="space-y-3">
-              <button className="w-full text-left px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition">
-                ➕ Add New User
-              </button>
-              <button className="w-full text-left px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition">
-                📊 Generate Report
-              </button>
-              <button className="w-full text-left px-4 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition">
-                ⚙️ Manage Settings
-              </button>
-            </div>
-          </div>
+        {/* Role cards */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          {roles.map(({ href, label, desc, color }) => (
+            <Link
+              key={href}
+              href={href}
+              className="group flex flex-col items-center gap-4 rounded-2xl bg-white p-8 shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+            >
+              <span
+                className={`inline-flex items-center justify-center rounded-xl px-6 py-2.5 font-poppins text-sm font-semibold text-white transition-colors ${color}`}
+              >
+                {label}
+              </span>
+              <p className="text-center font-nunito text-xs text-gray-500">{desc}</p>
+            </Link>
+          ))}
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
