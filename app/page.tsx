@@ -1,5 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { fetchAuthSession } from "aws-amplify/auth";
 
 const roles = [
   {
@@ -23,6 +28,59 @@ const roles = [
 ];
 
 export default function RootPage() {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // 1. Check if user is an Admin (uses AWS Amplify)
+        const session = await fetchAuthSession();
+        if (session.tokens?.accessToken) {
+          router.replace("/admin/dashboard");
+          return;
+        }
+      } catch (err) {
+        // No active Amplify session, continue checking local storage
+      }
+
+      // 2. Check Local Storage for Cashier or Inventory (uses custom backend)
+      const token = localStorage.getItem("access_token");
+      const userStr = localStorage.getItem("user");
+
+      if (token && userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          
+          // Redirect based on user's role or permissions
+          // Note: adjust these checks if your user object has a specific 'role' field
+          if (user.posAccess) {
+            router.replace("/cashier/dashboard");
+            return;
+          } else if (user.inventoryAccess || user.role === "inventory") {
+            router.replace("/inventory/dashboard");
+            return;
+          }
+          
+          // If we can't determine specific role but they have a token, you could fallback
+          // router.replace("/dashboard");
+        } catch (e) {
+          console.error("Error parsing user data from local storage", e);
+        }
+      }
+
+      // 3. Not logged in, show the role selection page
+      setChecking(false);
+    };
+
+    checkAuth();
+  }, [router]);
+
+  if (checking) {
+    // Show a blank screen or a loader while checking auth state to prevent flicker
+    return <div className="min-h-screen bg-[#f8f9fb]" />;
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f8f9fb] px-4 py-10">
       <div className="w-full max-w-4xl">
